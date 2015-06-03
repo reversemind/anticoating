@@ -1,12 +1,14 @@
 package com.company
 
 import groovy.util.logging.Slf4j
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.codehaus.groovy.jsr223.GroovyCompiledScript
 import spock.lang.Specification
 
 import static groovy.io.FileType.FILES
 
 /**
- *
+ * ??? GroovyCompiledScript
  */
 @Slf4j
 class GroovyScriptEnginePreCompileTest extends Specification {
@@ -14,12 +16,121 @@ class GroovyScriptEnginePreCompileTest extends Specification {
     def fileNameList = []
     def tempScriptDirectory = System.getProperty("java.io.tmpdir")
 
+    def "get all files for array of directories"() {
+        setup:
+
+        log.info "temp path:" + System.getProperty("java.io.tmpdir");
+        tempScriptDirectory = System.getProperty("java.io.tmpdir") + File.separator + new Date().getTime()
+
+        log.info "Temp script path:" + tempScriptDirectory
+        log.info "Create tmp directory:" + new File(tempScriptDirectory).mkdirs()
+
+
+        def subDirectory = "subDirectory"
+        def tempSubScriptDirectory = tempScriptDirectory + File.separator + subDirectory
+        log.info "Create subDirectory directory:" + new File(tempSubScriptDirectory).mkdirs()
+
+        // Important order of directories
+        String[] directories = new String[2];
+        directories[0] = tempScriptDirectory
+        directories[1] = tempSubScriptDirectory
+
+
+        def fileNames = ["file1.groovy", "file2.groovy", "file2.groovy"];
+
+        // add three files
+        if (new File(tempScriptDirectory + File.separator + fileNames[0]).createNewFile()) {
+            new File(tempScriptDirectory + File.separator + fileNames[0]) << "println \"from script: \${this.getClass().getCanonicalName()} time:\" + new Date() + \" / \" + new Date().getTime() + \" ms \""
+        }
+
+        if (new File(tempScriptDirectory + File.separator + fileNames[1]).createNewFile()) {
+            new File(tempScriptDirectory + File.separator + fileNames[1]) << "println \"from script: \${this.getClass().getCanonicalName()} time:\" + new Date() + \" / \" + new Date().getTime() + \" ms \""
+        }
+
+        if (new File(tempSubScriptDirectory + File.separator + fileNames[2]).createNewFile()) {
+            new File(tempSubScriptDirectory + File.separator + fileNames[2]) << "println \"SUB DIRECTORY with the same name - from script: \${this.getClass().getCanonicalName()} time:\" + new Date() + \" / \" + new Date().getTime() + \" ms \""
+        }
+
+        // 'Cause GroovyScriptEngine find only the first presents of file name
+        def fileList = getGroovyFilesInDirectories(directories, false)
+        log.info "fileList" + fileList
+
+        Set<String> pureFileNames = new TreeSet<String>(getFileName(fileList));
+        log.info "pureFileNames:" + pureFileNames
+
+
+        GroovyScriptEngine groovyScriptEngine = new GroovyScriptEngine(directories);
+        for(String scriptName: pureFileNames){
+            Class clazz = groovyScriptEngine.loadScriptByName(scriptName);
+        }
+
+        when:
+        println ""
+
+        for(String scriptName: pureFileNames){
+            groovyScriptEngine.run(scriptName, "");
+        }
+
+        then:
+        println ""
+
+    }
+
     def String zeroNumber(int signCount, int number) {
         def _tmp = "" + number
         (signCount - _tmp.length()).times {
             _tmp = "0" + _tmp
         }
         return _tmp
+    }
+
+    def List<String> getFileName(List<File> fileList) {
+        if (!fileList) {
+            return new ArrayList<String>(0);
+        }
+        List<String> _list = new ArrayList<String>(fileList.size())
+        fileList.each { file ->
+            _list.add file.name
+        }
+        return _list
+    }
+
+    def List<File> getGroovyFilesInDirectories(String[] directories, boolean isRecursively){
+        return getFilesByExtensionInDirectory(directories, '.groovy',isRecursively);
+    }
+
+    def List<File> getFilesByExtensionInDirectory(String[] directories, String extension, boolean isRecursively) {
+        if(!directories){
+            return new ArrayList<File>(0);
+        }
+
+        List<File> _list = new ArrayList<File>();
+        directories.each { directory ->
+            getFilesByExtensionInDirectory(directory, extension, isRecursively).each { file ->
+                _list.add(file)
+            }
+        }
+
+        return _list;
+    }
+
+    def List<File> getFilesByExtensionInDirectory(String directoryPath, String extension, boolean isRecursively) {
+        List<File> fileList = new ArrayList<File>();
+
+        if (isRecursively) {
+            new File(directoryPath).eachFileRecurse(FILES) { file ->
+                if (file.name.endsWith(extension)) {
+                    fileList.add file
+                }
+            }
+        } else {
+            new File(directoryPath).eachFile(FILES) { file ->
+                if (file.name.endsWith(extension)) {
+                    fileList.add file
+                }
+            }
+        }
+        return fileList;
     }
 
     def "call script with the same name that lies deeper"() {
@@ -54,15 +165,15 @@ class GroovyScriptEnginePreCompileTest extends Specification {
             new File(scriptFileNameInSubDirectory) << "println \"ACTUALLY it's other script - from script: \${this.getClass().getCanonicalName()} time:\" + new Date() + \" / \" + new Date().getTime() + \" ms \""
         }
 
-        new File(tempScriptDirectory).eachFileRecurse(FILES) { file ->
-            if (file.name.endsWith('.groovy')) {
-                log.info "name ${file.name} path:${file.absolutePath}"
-            }
-        }
+        def fileList = getFilesByExtensionInDirectory(tempScriptDirectory, '.groovy', false)
+        log.info "files:" + fileList
+
+        log.info "names:" + getFileName(fileList)
 
         when:
         GroovyScriptEngine groovyScriptEngine = new GroovyScriptEngine(tempScriptDirectory);
         groovyScriptEngine.run(scriptName2, "")
+
 
 
         then: "'Cause GroovyScriptEngine look inside ONLY one directory - without any recursivity"
@@ -97,13 +208,18 @@ class GroovyScriptEnginePreCompileTest extends Specification {
         when:
 
         GroovyScriptEngine groovyScriptEngine = new GroovyScriptEngine(tempScriptDirectory);
+        CompilerConfiguration compilerConfiguration = groovyScriptEngine.getConfig()
+        compilerConfiguration.setRecompileGroovySource(true);
+        compilerConfiguration.setVerbose(true)
+        groovyScriptEngine.setConfig(compilerConfiguration);
+
 
         double firstRunTime = 0.0
         double secondRunTime = 0.0
         double thirdRunTime = 0.0
 
         N.times { number ->
-//            log.info "" + fileNameList.get(number) + " modified:" + groovyScriptEngine.getLastModified(fileNameList.get(number) as String)
+            log.info "" + fileNameList.get(number) + " modified:" + groovyScriptEngine.getLastModified(fileNameList.get(number) as String)
             Class clazz = groovyScriptEngine.loadScriptByName(fileNameList.get(number) as String);
             log.info "" + clazz
         }
@@ -130,6 +246,11 @@ class GroovyScriptEnginePreCompileTest extends Specification {
                 thirdRunTime = (endTime - beginTime) / N * 1.0
             }
         }
+
+        compilerConfiguration = groovyScriptEngine.getConfig()
+        File file = compilerConfiguration.getTargetDirectory()
+        log.info "Target directory:" + file?.absolutePath
+        log.info "" + compilerConfiguration.getVerbose()
 
 
         then:
