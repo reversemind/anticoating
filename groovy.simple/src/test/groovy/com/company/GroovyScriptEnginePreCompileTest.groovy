@@ -1,9 +1,15 @@
 package com.company
 
 import groovy.util.logging.Slf4j
+import org.apache.commons.io.DirectoryWalker
+import org.apache.commons.io.filefilter.FileFilterUtils
+import org.apache.commons.lang3.StringUtils
 import org.codehaus.groovy.control.CompilerConfiguration
-import org.codehaus.groovy.jsr223.GroovyCompiledScript
 import spock.lang.Specification
+
+import java.nio.file.FileVisitOption
+import java.nio.file.Files
+import java.nio.file.Paths
 
 import static groovy.io.FileType.FILES
 
@@ -15,6 +21,16 @@ class GroovyScriptEnginePreCompileTest extends Specification {
 
     def fileNameList = []
     def tempScriptDirectory = System.getProperty("java.io.tmpdir")
+
+    public static List<File> getFileListByDirectory(String directoryPath) {
+        if (StringUtils.isBlank(directoryPath)) {
+            return new ArrayList<File>(0);
+        }
+
+        List<File> _list = new ArrayList<File>()
+
+        return _list;
+    }
 
     def "get all files for array of directories"() {
         setup:
@@ -60,16 +76,20 @@ class GroovyScriptEnginePreCompileTest extends Specification {
 
 
         GroovyScriptEngine groovyScriptEngine = new GroovyScriptEngine(directories);
-        for(String scriptName: pureFileNames){
+        for (String scriptName : pureFileNames) {
             Class clazz = groovyScriptEngine.loadScriptByName(scriptName);
         }
 
         when:
         println ""
 
-        for(String scriptName: pureFileNames){
+        for (String scriptName : pureFileNames) {
             groovyScriptEngine.run(scriptName, "");
         }
+
+        println "ff:" + FileUtils.getFileListInDirectoryByExtension(directories[0], false, ".groovy")
+
+        println "files:" + new GroovyFilesWalker(directories[0], false).getFiles()
 
         then:
         println ""
@@ -95,12 +115,12 @@ class GroovyScriptEnginePreCompileTest extends Specification {
         return _list
     }
 
-    def List<File> getGroovyFilesInDirectories(String[] directories, boolean isRecursively){
-        return getFilesByExtensionInDirectory(directories, '.groovy',isRecursively);
+    def List<File> getGroovyFilesInDirectories(String[] directories, boolean isRecursively) {
+        return getFilesByExtensionInDirectory(directories, '.groovy', isRecursively);
     }
 
     def List<File> getFilesByExtensionInDirectory(String[] directories, String extension, boolean isRecursively) {
-        if(!directories){
+        if (!directories) {
             return new ArrayList<File>(0);
         }
 
