@@ -8,7 +8,6 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
 //    groovy localGroovy()
 
@@ -18,13 +17,34 @@ dependencies {
     compile("org.codehaus.groovy:groovy-all:2.3.+")
     compile("org.codehaus.groovy.modules.http-builder:http-builder:0.7.1")
     compile("org.codehaus.groovy:groovy-json:2.4.+")
-}
 
+    testCompile "org.mockito:mockito-all:1.10.+"
+
+    testCompile "org.testng:testng:6.0.1"
+    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'cglib:cglib:3.1'
+    testCompile 'org.ow2.asm:asm:5.0.3'
+    testCompile 'org.objenesis:objenesis:2.1'
+}
 
 jar {
     baseName = 'groovy.simple'
     version = '0.0.1-SNAPSHOT'
 }
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+task copyConfigs(type: Copy) {
+    from('src/main/resources/config.xml')
+    from('src/test/resources/config.xml') { rename { 'config.xml.test' } }
+    into "$buildDir/conf"
+}
+
+task junit(type: Test) {
+    useJUnit()
+}
+
+copyConfigs.dependsOn clean
+compileJava.mustRunAfter copyConfigs
+check.dependsOn junit
