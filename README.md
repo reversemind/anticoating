@@ -1,2 +1,3 @@
-# anticoating
-anticoating
+# Anticoating
+
+Anticoating - experimental repository

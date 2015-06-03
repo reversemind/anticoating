@@ -1,0 +1,30 @@
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+group = 'groovy.simple'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+
+dependencies {
+//    groovy localGroovy()
+
+    compile("org.slf4j:log4j-over-slf4j:1.7.+")
+    compile("org.apache.commons:commons-lang3:3.+")
+
+    compile("org.codehaus.groovy:groovy-all:2.3.+")
+    compile("org.codehaus.groovy.modules.http-builder:http-builder:0.7.1")
+    compile("org.codehaus.groovy:groovy-json:2.4.+")
+}
+
+
+jar {
+    baseName = 'groovy.simple'
+    version = '0.0.1-SNAPSHOT'
+}
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
