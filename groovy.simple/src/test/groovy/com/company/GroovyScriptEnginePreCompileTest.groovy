@@ -87,7 +87,7 @@ class GroovyScriptEnginePreCompileTest extends Specification {
             groovyScriptEngine.run(scriptName, "");
         }
 
-        println "files:" + FileUtils.getFileListInDirectoryByExtension(directories[0], false, ".groovy")
+        println "files:" + FileUtils.getFilesByExtensionInDirectory(directories[0], ".groovy", false)
 
         println "files:" + new GroovyFilesWalker(directories[0], false).getFiles()
 
