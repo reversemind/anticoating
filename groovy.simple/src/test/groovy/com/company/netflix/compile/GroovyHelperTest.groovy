@@ -2,6 +2,7 @@ package com.company.netflix.compile
 
 import com.netflix.nicobar.core.archive.PathScriptArchive
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.codehaus.groovy.tools.GroovyClass
 import spock.lang.Specification
 
@@ -39,13 +40,28 @@ class GroovyHelperTest extends Specification{
         System.out.println(compiledClasses);
 
 
+        GroovyScriptEngine groovyScriptEngine = new GroovyScriptEngine("");
+//        groovyScriptEngine.getGroovyClassLoader().setResourceLoader();
+//        groovyScriptEngine.run("","")
+
+//        scriptArchive.getClassLoader()
+
         for(GroovyClass groovyClass: compiledClasses){
             System.out.println("groovyClass:" + groovyClass.getName());
+//            Class klass = groovyScriptEngine.getGroovyClassLoader().defineClass(groovyClass.getName(), groovyClass.getBytes());
+            Class klass = PathScriptArchive.getClassLoader().defineClass(groovyClass.getName(), groovyClass.getBytes(), 0, groovyClass.getBytes().length);
+            println "klass:" + klass
+            if(klass.getCanonicalName().equals("fakepackage.RunScript")){
+                println "go!"
+                Script script = InvokerHelper.createScript(klass, new Binding());
+                script.run()
+            }
         }
 
 
-        GroovyScriptEngine groovyScriptEngine = new GroovyScriptEngine("");
-//        groovyScriptEngine.getGroovyClassLoader().setResourceLoader();
+
+
+
 
         System.out.println("\n");
 
