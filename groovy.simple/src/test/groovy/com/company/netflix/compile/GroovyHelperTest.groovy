@@ -49,7 +49,7 @@ class GroovyHelperTest extends Specification{
         for(GroovyClass groovyClass: compiledClasses){
             System.out.println("groovyClass:" + groovyClass.getName());
 //            Class klass = groovyScriptEngine.getGroovyClassLoader().defineClass(groovyClass.getName(), groovyClass.getBytes());
-            Class klass = PathScriptArchive.getClassLoader().defineClass(groovyClass.getName(), groovyClass.getBytes(), 0, groovyClass.getBytes().length);
+            Class klass = getClass().getClassLoader().defineClass(groovyClass.getName(), groovyClass.getBytes(), 0, groovyClass.getBytes().length);
             println "klass:" + klass
             if(klass.getCanonicalName().equals("fakepackage.RunScript")){
                 println "go!"
