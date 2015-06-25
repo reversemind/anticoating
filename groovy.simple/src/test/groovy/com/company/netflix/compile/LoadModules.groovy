@@ -37,6 +37,7 @@ class LoadModules extends Specification{
 
         ScriptModuleSpec _moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create("spock-core"))
                 .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
                 .build()
         ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get('/opt/github/reversemind/anticoating/groovy.simple/src/test/resources/libs/modules2/repository/spock-core.jar'))
                 .setCreateTime(new Date().getTime())
@@ -51,7 +52,7 @@ class LoadModules extends Specification{
 //                .addModuleDependency("p90jvm-component")
 //                .addModuleDependency("p90sdk-api")
                 .addModuleDependency("spock-core")
-                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+//                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
                 .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
 
                 .build();
