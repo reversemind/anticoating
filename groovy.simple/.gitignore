@@ -1,5 +1,7 @@
 # Created by https://www.gitignore.io
 
+
+
 ### Gradle ###
 .gradle
 build/
@@ -109,3 +111,11 @@ crashlytics-build.properties
 
 # "temporary" build files
 /target
+
+
+src/test/resources/libs/modules2/lib/
+!joda-time-2.8.1.jar
+!spock-core-0.7-groovy-2.0.jar
+
+src/test/resources/libs/modules2/repository/
+!spock-core.jar
