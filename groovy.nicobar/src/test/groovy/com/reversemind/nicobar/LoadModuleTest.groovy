@@ -7,6 +7,7 @@ import com.netflix.nicobar.core.archive.ScriptArchive
 import com.netflix.nicobar.core.archive.ScriptModuleSpec
 import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
+import com.netflix.nicobar.core.module.ScriptModuleUtils
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
@@ -142,6 +143,67 @@ class LoadModuleTest extends Specification {
         when:
         ScriptModule scriptModule = moduleLoader.getScriptModule(MODULE_NAME)
         Set<Class<?>> classes = scriptModule.getLoadedClasses()
+
+        then:
+        scriptModule != null
+        classes != null
+        classes.size() == 1
+    }
+
+    def 'run script'(){
+        setup:
+        ScriptModuleLoader moduleLoader = NicobarUtils.createFullScriptModuleLoader().build()
+
+        def MODULE_NAME = 'module1'
+        def SCRIPT_NAME = 'scriptForModule1'
+
+        // Create Nicobar module
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create(MODULE_NAME))
+        // use BytecodeLoadingPlugin - 'cause we use spock-core-0.7-groovy-2.0.jar at runtime
+        //
+        // lib spock-core-0.7-groovy-2.0.jar
+        // already added to moduleLoader via
+        // .addRuntimeResource(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
+                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
+                .build();
+
+        def scriptRootPath = Paths.get("src/test/resources/${MODULE_NAME}").toAbsolutePath()
+        ScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
+                .setRecurseRoot(true)
+                .setModuleSpec(moduleSpec)
+                .build();
+
+        // at this stage groovy script should be compiled at /tmo/ScriptModuleLoader[6601967070332071266] directory
+        //
+        // for example
+        // /tmp/ScriptModuleLoader234879710123481140/module1:1435319868587/scriptForModule1.class
+        moduleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
+
+
+        when:
+        ScriptModule scriptModule = moduleLoader.getScriptModule(MODULE_NAME)
+        Set<Class<GroovyObject>> classes = scriptModule.getLoadedClasses()
+
+        Class<GroovyObject> clazz = ScriptModuleUtils.findClass(scriptModule, SCRIPT_NAME)
+
+        Set<Class> _classes = scriptModule.getLoadedClasses();
+        Class<GroovyObject> _targetClass = null;
+        for (Class<?> _clazz : _classes) {
+            if (_clazz.getName().equals(SCRIPT_NAME)) {
+                _targetClass = _clazz;
+                break;
+            }
+        }
+
+        _targetClass
+
+
+        GroovyObject groovyObject;
+
+
+        Script script = InvokerHelper.createScript((GroovyObject)clazz, new Binding());
+        script.run()
 
         then:
         scriptModule != null
