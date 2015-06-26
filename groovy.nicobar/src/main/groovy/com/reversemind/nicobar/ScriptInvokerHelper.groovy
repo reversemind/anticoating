@@ -1,27 +1,25 @@
-package com.reversemind.nicobar;
+package com.reversemind.nicobar
 
-import groovy.lang.*;
-import org.codehaus.groovy.runtime.InvokerHelper;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.codehaus.groovy.runtime.InvokerHelper
+import org.codehaus.groovy.runtime.InvokerInvocationException
 
-import javax.annotation.Nullable;
-import java.util.Map;
+import javax.annotation.Nullable
 
 /**
  *
  */
-public class NicobarScriptInvokerHelper extends InvokerHelper {
+public class ScriptInvokerHelper extends InvokerHelper {
 
-    private static final Object[] EMPTY_MAIN_ARGS = new Object[]{new String[0]};
+    private static final Object[] EMPTY_MAIN_ARGS = [];
 
     @Nullable
-    @Override
-    public static Script createScript(Class scriptClass, Binding context) throws IllegalAccessException, InstantiationException {
+    public static Script createScript(Class scriptClass, Binding context) {
         Script script = null;
-        try{
+        try {
             script = createDefaultScript(scriptClass, context);
-        }catch (ClassCastException ignore){
-            try{
+        } catch (ClassCastException ignore) {
+
+            try {
                 final Object object = scriptClass.newInstance();
                 script = new Script() {
                     public Object run() {
@@ -38,16 +36,15 @@ public class NicobarScriptInvokerHelper extends InvokerHelper {
                 };
             } catch (Exception e) {
                 throw new GroovyRuntimeException(
-                        "Failed to create Script instance for class: "
-                                + scriptClass + ". Reason: " + e, e);
+                        "Failed to create Script instance for class: " + scriptClass + ". Reason: " + e, e);
             }
 
         }
-
+        script.setBinding(context);
         return script;
     }
 
-    private static Script createDefaultScript(Class scriptClass, Binding context) {{
+    private static Script createDefaultScript(Class scriptClass, Binding context) {
         Script script = null;
         // for empty scripts
         if (scriptClass == null) {
@@ -55,7 +52,7 @@ public class NicobarScriptInvokerHelper extends InvokerHelper {
                 public Object run() {
                     return null;
                 }
-            };
+            }
         } else {
             try {
                 final GroovyObject object = (GroovyObject) scriptClass.newInstance();

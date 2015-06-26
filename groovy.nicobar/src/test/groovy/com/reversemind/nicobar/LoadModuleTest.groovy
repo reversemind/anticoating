@@ -183,54 +183,18 @@ class LoadModuleTest extends Specification {
 
         when:
         ScriptModule scriptModule = moduleLoader.getScriptModule(MODULE_NAME)
-        Set<Class<GroovyObject>> classes = scriptModule.getLoadedClasses()
-
-        Class<GroovyObject> clazz = ScriptModuleUtils.findClass(scriptModule, SCRIPT_NAME)
-
-        Set<Class> _classes = scriptModule.getLoadedClasses();
-        Class<GroovyObject> _targetClass = null;
-        for (Class<?> _clazz : _classes) {
-            if (_clazz.getName().equals(SCRIPT_NAME)) {
-                _targetClass = _clazz;
-                break;
-            }
-        }
-
-        _targetClass
 
 
-        GroovyObject groovyObject;
+        Class clazz = ScriptModuleUtils.findClass(scriptModule, SCRIPT_NAME)
 
-
-
-        Object[] EMPTY_MAIN_ARGS = FakeClassTwo.EMPTY_MAIN_ARGS
-
-        String[] EMPTY_STRINGS = []
-
-        InvokerHelper.runScript(clazz, EMPTY_STRINGS);
-
-
-        Object object = clazz.newInstance()
-        Script script = new Script() {
-            public Object run() {
-                // pass throw bindings
-                Object args = new Binding().getVariables().get("args");
-
-                Object argsToPass = EMPTY_MAIN_ARGS;
-                if (args != null && args instanceof String[]) {
-                    argsToPass = args;
-                }
-                object.invokeMethod("main", argsToPass);
-                return null;
-            }
-        };
+        Script script = ScriptInvokerHelper.createScript(clazz, new Binding());
         script.run()
 
 
+        ScriptInvokerHelper.createScript(ScriptModuleUtils.findClass(scriptModule, 'justscript'), new Binding()).run()
+
         then:
         scriptModule != null
-        classes != null
-        classes.size() == 1
     }
 
     /**
