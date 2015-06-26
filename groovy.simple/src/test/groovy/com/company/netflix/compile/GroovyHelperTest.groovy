@@ -44,13 +44,26 @@ class GroovyHelperTest extends Specification{
                 '/opt/script/modules/lib/p90jvm-common.jar',
                 '/opt/script/modules/lib/p90jvm-component.jar',
                 '/opt/script/modules/lib/p90sdk-api.jar',
-                '/opt/script/modules/lib/spock-core.jar'
+                '/opt/script/modules/lib/spock-core.jar',
+                '/opt/script/modules/lib/netty-all.jar'
         ]
 
-        ScriptModuleSpec _moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create("p90jvm-common"))
+
+        ScriptModuleSpec _moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create("netty-all"))
                 .addCompilerPluginId(Groovy2Compiler.GROOVY2_COMPILER_ID)
                 .build()
-        ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get(paths[0]))
+        ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get(paths[4]))
+                .setCreateTime(new Date().getTime())
+                .setModuleSpec(_moduleSpec)
+                .build();
+        archiveRepository.insertArchive(scriptArchive);
+        moduleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
+
+
+         _moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create("p90jvm-common"))
+                .addCompilerPluginId(Groovy2Compiler.GROOVY2_COMPILER_ID)
+                .build()
+         scriptArchive = new JarScriptArchive.Builder(Paths.get(paths[0]))
                 .setCreateTime(new Date().getTime())
                 .setModuleSpec(_moduleSpec)
                 .build();
@@ -90,7 +103,16 @@ class GroovyHelperTest extends Specification{
         moduleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
 
 
+
+
+
+
+
+
+
+
         ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create("p90test-module"))
+                .addModuleDependency("netty-all")
                 .addModuleDependency("p90jvm-common")
                 .addModuleDependency("p90jvm-component")
                 .addModuleDependency("p90sdk-api")
