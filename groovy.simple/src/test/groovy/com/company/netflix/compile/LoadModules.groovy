@@ -13,8 +13,10 @@ import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec
 import com.netflix.nicobar.core.utils.ClassPathUtils
 import com.netflix.nicobar.example.groovy2.ExampleResourceLocator
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2Compiler
+import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
 import org.codehaus.groovy.runtime.InvokerHelper
+import org.codehaus.groovy.tools.GroovyClass
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -35,6 +37,27 @@ class LoadModules extends Specification{
         setup:
         Path path = Paths.get('src/test/resources/libs/modules2/repository/spock-core.jar');
         println "path:${path} :" + path.toAbsolutePath()
+    }
+
+    def 'test groovy script creation'(){
+        setup:
+        def scriptRootPath = Paths.get('src/test/resources/libs/modules2/script').toAbsolutePath()
+        def targetClassCompiledPath = Paths.get('src/test/resources/libs/modules2/targetDirectory').toAbsolutePath()
+
+        ScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
+                .setRecurseRoot(true)
+//                .setModuleSpec(moduleSpec)
+                .build();
+
+        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(targetClassCompiledPath)
+                .addScriptArchive(scriptArchive)
+                .compile();
+
+        println "compiledClasses:${compiledClasses}"
+
+        compiledClasses.each { klass ->
+            println "" + klass.getName()
+        }
     }
 
     def 'load'(){
@@ -80,8 +103,6 @@ class LoadModules extends Specification{
         moduleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
 
 
-
-
         ScriptModule scriptModule = moduleLoader.getScriptModule("simple-module")
 
         println "size:" + scriptModule.getModuleClassLoader().getLoadedClasses().size()
@@ -123,10 +144,8 @@ class LoadModules extends Specification{
                 .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
                 .addRuntimeResource(ExampleResourceLocator.getGroovyPluginLocation())
                 .addRuntimeResource(getByteCodeLoadingPluginLocation())
-        .addRuntimeResource(Paths.get("src/test/resources/libs/modules2/lib").toAbsolutePath())
-
-        // hack to make the gradle build work. still doesn't seem to properly instrument the code
-        // should probably add a classloader dependency on the system classloader instead
+                // hack to make the gradle build work. still doesn't seem to properly instrument the code
+                // should probably add a classloader dependency on the system classloader instead
                 .addRuntimeResource(getCoberturaJar(getClass().getClassLoader()))
                 .withPluginClassName(Groovy2CompilerPlugin.class.getName())
                 .build();
@@ -146,6 +165,7 @@ class LoadModules extends Specification{
                 .addRuntimeResource(Paths.get("src/test/resources/libs/modules2/lib/joda-time-2.8.1.jar").toAbsolutePath())
                 .addRuntimeResource(getCoberturaJar(getClass().getClassLoader()))
                 .withPluginClassName(BytecodeLoadingPlugin.class.getName())
+                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
                 .build();
 
 

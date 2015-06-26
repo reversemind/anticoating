@@ -24,7 +24,6 @@ dependencies {
     compile 'com.netflix.Nicobar:nicobar-cassandra:0.2.6'
     compile 'com.netflix.Nicobar:nicobar-example:0.2.6'
 
-
     compile 'joda-time:joda-time:2.8.1'
 
     compile 'org.codehaus.groovy:groovy-all:2.3.+'
