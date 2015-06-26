@@ -202,8 +202,30 @@ class LoadModuleTest extends Specification {
         GroovyObject groovyObject;
 
 
-        Script script = InvokerHelper.createScript((GroovyObject)clazz, new Binding());
+
+        Object[] EMPTY_MAIN_ARGS = FakeClassTwo.EMPTY_MAIN_ARGS
+
+        String[] EMPTY_STRINGS = []
+
+        InvokerHelper.runScript(clazz, EMPTY_STRINGS);
+
+
+        Object object = clazz.newInstance()
+        Script script = new Script() {
+            public Object run() {
+                // pass throw bindings
+                Object args = new Binding().getVariables().get("args");
+
+                Object argsToPass = EMPTY_MAIN_ARGS;
+                if (args != null && args instanceof String[]) {
+                    argsToPass = args;
+                }
+                object.invokeMethod("main", argsToPass);
+                return null;
+            }
+        };
         script.run()
+
 
         then:
         scriptModule != null
