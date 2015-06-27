@@ -12,12 +12,12 @@ public class ScriptInvokerHelper {
 
     private static final Object[] EMPTY_MAIN_ARGS = [];
 
-    public static Object runScript(Class scriptClass, Binding binding) {
+    public static Object runGroovyScript(Class scriptClass, Binding binding) {
         Script script = createGroovyScript(scriptClass, binding);
         return script != null ? script.run() : null
     }
 
-    public static Object runScript(Class scriptClass, String[] args) {
+    public static Object runGroovyScript(Class scriptClass, String[] args) {
         Binding context = new Binding(args);
         Script script = createGroovyScript(scriptClass, context);
         return script != null ? script.run() : null

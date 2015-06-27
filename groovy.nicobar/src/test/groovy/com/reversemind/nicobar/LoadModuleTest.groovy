@@ -192,7 +192,7 @@ class LoadModuleTest extends Specification {
 
 
         String[] args = []
-        ScriptInvokerHelper.runScript(clazz, args)
+        ScriptInvokerHelper.runGroovyScript(clazz, args)
 
 
         ScriptInvokerHelper.createGroovyScript(ScriptModuleUtils.findClass(scriptModule, 'justscript'), new Binding()).run()
