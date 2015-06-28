@@ -20,24 +20,21 @@ import java.nio.file.Paths
  */
 class CompilerToModuleTest extends Specification{
 
-    def 'comile a module with spec'(){
+    def 'compile a module with spec'(){
         setup:
-        println "src/main/resources/module/"
 
-
-        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create('sublevel','v0_1-SNAPSHOT'))
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create('precompiled','v0_1-SNAPSHOT'))
                 .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
                 .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
                 .build();
 
-//        Path scriptRootPath = Paths.get('src/main/resources/module').toAbsolutePath()
-        Path scriptRootPath = Paths.get('/opt/Temp/module').toAbsolutePath()
+        Path scriptRootPath = Paths.get('src/main/resources/module').toAbsolutePath()
         PathScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
                 .setRecurseRoot(true)
                 .setModuleSpec(moduleSpec)
                 .build();
 
-        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get('/opt/CompileGroovy2'))
+        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get('src/main/resources/compileTo').toAbsolutePath())
                 .addScriptArchive(scriptArchive)
                 .compile();
 
@@ -51,7 +48,7 @@ class CompilerToModuleTest extends Specification{
 
     def 'load by specs'(){
         setup:
-        ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/sublevel.jar').toAbsolutePath())
+        ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/precompiled.jar').toAbsolutePath())
 
                 .build();
 

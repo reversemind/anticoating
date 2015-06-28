@@ -20,18 +20,8 @@ class ScriptContainerTest extends Specification {
     def 'init scriptContainer'(){
         setup:
 
-        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create('sublevel'))
-                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
-                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
-                .build()
-        ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/sublevel.jar').toAbsolutePath())
-//                .setModuleSpec(moduleSpec)
+        ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/precompiled.jar').toAbsolutePath())
                 .build();
-
-//        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get('/opt/CompileGroovy2'))
-//                .addScriptArchive(scriptArchive)
-//                .compile();
-//
 
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
         scriptContainer.updateScriptArchive(scriptArchive)
