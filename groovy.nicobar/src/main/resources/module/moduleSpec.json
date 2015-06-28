@@ -1,12 +1,12 @@
 {
-  "moduleId": "test-modulespec-moduleId",
+  "moduleId": "precompiled",
   "compilerPluginIds": [
-    "nolang", "groovy2"
+    "bytecode"
   ],
   "moduleDependencies": [
   ],
   "archiveMetadata": {
-    "mainScript": "mainScript",
+    "mainScript": "precompiled.mainScript",
     "metadataName1": {
       "nestedKey1": "metadataValue1",
       "nestedKey2": "metadataValue2"
@@ -19,4 +19,3 @@
     ]
   }
 }
-
