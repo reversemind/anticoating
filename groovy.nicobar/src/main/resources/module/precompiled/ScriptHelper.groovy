@@ -1,7 +1,7 @@
 package precompiled
 
-class ScriptHelper {
+class ScriptHelper1 {
     def static String getTime() {
-        return "" + new Date()
+        return "script helper precompiled:" + new Date()
     }
 }
