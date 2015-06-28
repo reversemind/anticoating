@@ -38,7 +38,7 @@ class NicobarUtils {
                 .addRuntimeResource(Paths.get("src/test/resources/libs/joda-time-2.8.1.jar").toAbsolutePath())
                 .addRuntimeResource(getCoberturaJar(NicobarUtils.class.getClassLoader()))
                 .withPluginClassName(BytecodeLoadingPlugin.class.getName())
-                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
+//                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
                 .build();
 
         // create and start the builder with the plugin
@@ -68,7 +68,7 @@ class NicobarUtils {
                 .addRuntimeResource(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
                 .addRuntimeResource(getCoberturaJar(NicobarUtils.class.getClassLoader()))
                 .withPluginClassName(BytecodeLoadingPlugin.class.getName())
-                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
+//                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
                 .build();
 
         // create and start the builder with the plugin
@@ -89,7 +89,7 @@ class NicobarUtils {
 
     def
     static Path getNoCodePluginPath() {
-        com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
+        //com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
         String resourceName = ClassPathUtils.classNameToResourceName("com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin");
         Path path = ClassPathUtils.findRootPathForResource(resourceName, NicobarUtils.class.getClassLoader());
         if (path == null) {

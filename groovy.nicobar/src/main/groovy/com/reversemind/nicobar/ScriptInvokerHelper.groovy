@@ -24,7 +24,7 @@ public class ScriptInvokerHelper {
     }
 
     public static Object runScript(Class scriptClass) {
-        Binding context = new Binding([]);
+        Binding context = new Binding();
         Script script = createGroovyScript(scriptClass, context);
         return script != null ? script.run() : null
     }
