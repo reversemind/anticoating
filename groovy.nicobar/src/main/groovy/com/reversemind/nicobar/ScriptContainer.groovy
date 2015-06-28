@@ -71,6 +71,8 @@ class ScriptContainer {
                 } catch (Exception ex) {
                     ex.printStackTrace()
                 }
+            }else{
+                log.error("No classes found for name:", mainScriptName)
             }
         }
     }
