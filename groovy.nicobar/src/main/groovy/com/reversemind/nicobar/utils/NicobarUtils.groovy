@@ -38,7 +38,7 @@ class NicobarUtils {
                 .addRuntimeResource(Paths.get("src/test/resources/libs/joda-time-2.8.1.jar").toAbsolutePath())
                 .addRuntimeResource(getCoberturaJar(NicobarUtils.class.getClassLoader()))
                 .withPluginClassName(BytecodeLoadingPlugin.class.getName())
-                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
+//                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
                 .build();
 
         // create and start the builder with the plugin
@@ -68,7 +68,7 @@ class NicobarUtils {
                 .addRuntimeResource(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
                 .addRuntimeResource(getCoberturaJar(NicobarUtils.class.getClassLoader()))
                 .withPluginClassName(BytecodeLoadingPlugin.class.getName())
-                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
+//                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
                 .build();
 
         // create and start the builder with the plugin
@@ -79,6 +79,17 @@ class NicobarUtils {
 
     def
     static Path getByteCodeLoadingPluginPath() {
+        String resourceName = ClassPathUtils.classNameToResourceName("com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin");
+        Path path = ClassPathUtils.findRootPathForResource(resourceName, NicobarUtils.class.getClassLoader());
+        if (path == null) {
+            throw new IllegalStateException("coudln't find BytecodeLoadingPlugin plugin jar in the classpath.");
+        }
+        return path
+    }
+
+    def
+    static Path getNoCodePluginPath() {
+        //com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
         String resourceName = ClassPathUtils.classNameToResourceName("com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin");
         Path path = ClassPathUtils.findRootPathForResource(resourceName, NicobarUtils.class.getClassLoader());
         if (path == null) {
@@ -104,7 +115,29 @@ class NicobarUtils {
         /////////////////////////////////
         // Groovy2CompilerPlugin
 
-        // create the groovy plugin spec. this plugin specified a new module and classloader called "Groovy2Runtime"
+        // create the groovy plugin spec. this plugin specified a new com.reversemind.nicobar.utils.module and classloader called "Groovy2Runtime"
+        // which contains the groovy-all-n.n.n.jar and the jlee-nicobar project
+        ScriptCompilerPluginSpec pluginSpec = new ScriptCompilerPluginSpec.Builder(Groovy2Compiler.GROOVY2_COMPILER_ID)
+                .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
+                .addRuntimeResource(ExampleResourceLocator.getGroovyPluginLocation())
+                .addRuntimeResource(getByteCodeLoadingPluginPath())
+
+        // hack to make the gradle build work. still doesn't seem to properly instrument the code
+        // should probably add a classloader dependency on the system classloader instead
+                .addRuntimeResource(getCoberturaJar(NicobarUtils.class.getClassLoader()))
+                .withPluginClassName(Groovy2CompilerPlugin.class.getName())
+                .build();
+
+        return pluginSpec;
+    }
+
+    def
+    static ScriptCompilerPluginSpec buildNoCompilerSpec(){
+        // #1
+        /////////////////////////////////
+        // Groovy2CompilerPlugin
+
+        // create the groovy plugin spec. this plugin specified a new com.reversemind.nicobar.utils.module and classloader called "Groovy2Runtime"
         // which contains the groovy-all-n.n.n.jar and the jlee-nicobar project
         ScriptCompilerPluginSpec pluginSpec = new ScriptCompilerPluginSpec.Builder(Groovy2Compiler.GROOVY2_COMPILER_ID)
                 .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
