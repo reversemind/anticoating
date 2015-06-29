@@ -1,21 +1,15 @@
 {
   "moduleId": "precompiled",
-  "compilerPluginIds": [
-    "bytecode"
-  ],
-  "moduleDependencies": [
-  ],
+  "compilerPluginIds": ["bytecode"],
+  "moduleDependencies": [],
   "archiveMetadata": {
     "mainScript": "precompiled.mainScript",
-    "metadataName1": {
+
+    "metadataName1": 2,
+    "metadataName2": [1, 2, 3],
+    "metadataName3": {
       "nestedKey1": "metadataValue1",
       "nestedKey2": "metadataValue2"
-    },
-    "metadataName2": 2,
-    "metadataName3": [
-      1,
-      2,
-      3
-    ]
+    }
   }
 }
