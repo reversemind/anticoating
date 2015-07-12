@@ -21,8 +21,11 @@ class CreateModuleFromDirectoryTest extends Specification {
         // #1 Watch directory
 
         // #2 Create module for directory
+        // 2.1 - select directory to compile - all structure
+        // 2.2 Compile it - if compilation is succesfull that ready to create jar file
 
-        // #3
+
+        // #3 is it really need to compile fileda
 
 
         // Guava sha1 - git file hash
