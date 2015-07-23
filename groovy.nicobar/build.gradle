@@ -36,6 +36,8 @@ dependencies {
     testCompile 'org.mockito:mockito-all:1.10.+'
 
 
+    compile 'org.apache.ant:ant:1.9.6'
+
     compile 'com.google.guava:guava:18.0'
 
     testCompile 'org.testng:testng:6.0.1'
