@@ -79,6 +79,31 @@ class CompilerToModuleTest extends Specification{
 
         // #3
 
+        BuildJarModule buildJarModule = new BuildJarModule("module",
+                "version",
+                Paths.get('src/main/resources/compileTo/package2').toAbsolutePath().toString());
+
+        buildJarModule.toJar(Paths.get('src/main/resources/compileTo').toAbsolutePath().toString());
+    }
+
+
+    public class BuildJarModule{
+        String name
+        String version
+        String compiledClassesPath
+        String jsonDescriptor
+
+        BuildJarModule(String name, String version, String compiledClassesPath) {
+            this.name = name
+            this.version = version
+            this.compiledClassesPath = compiledClassesPath
+        }
+
+        public BuildJarModule toJar(String targetDirectory){
+            String targetName = targetDirectory + File.separator + this.name + ".jar"
+            "jar -cvf ${targetName} -C ${this.compiledClassesPath} .".execute()
+            return this
+        }
     }
 
 }

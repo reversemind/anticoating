@@ -7,6 +7,8 @@ import com.google.common.hash.Hashing
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
+import java.nio.file.Path
+
 /**
  *
  */
@@ -41,5 +43,8 @@ class CreateModuleFromDirectoryTest extends Specification {
         HashCode hashCode = hasher.hash()
         println "sha1:" + hashCode.toString()
 
+
+
     }
+
 }
