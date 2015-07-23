@@ -55,4 +55,30 @@ class CompilerToModuleTest extends Specification{
         println "Module spec" + scriptArchive.getModuleSpec()
     }
 
+    def 'compile a module with spec2'(){
+        setup:
+
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create('precompiled','v0_1-SNAPSHOT'))
+                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
+                .build();
+
+        Path scriptRootPath = Paths.get('src/test/resources/bunch/source').toAbsolutePath()
+        PathScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
+                .setRecurseRoot(true)
+                .setModuleSpec(moduleSpec)
+                .build();
+
+        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get('src/main/resources/compileTo').toAbsolutePath())
+                .addScriptArchive(scriptArchive)
+                .compile();
+
+        // #1 check that directory contains all files + after that add - non .groovy files
+
+        // #2 combine into single .jar
+
+        // #3
+
+    }
+
 }

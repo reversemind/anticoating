@@ -6,7 +6,7 @@ import org.codehaus.groovy.runtime.metaclass.MetaClassRegistryImpl
 import javax.annotation.Nullable
 
 /**
- * Customized adoptation of InvokerHelper
+ * Customized adaptation of InvokerHelper
  */
 public class ScriptInvokerHelper {
 

@@ -28,6 +28,11 @@ class CreateModuleFromDirectoryTest extends Specification {
         // #3 is it really need to compile fileda
 
 
+        /*
+            http://stackoverflow.com/questions/7225313/how-does-git-compute-file-hashes
+            How does GIT compute its commit hashes
+            Commit Hash (SHA1) = SHA1("blob" + <size_of_file> + "\0" + <contents_of_file>)
+        */
         // Guava sha1 - git file hash
         HashFunction hashFunction = Hashing.sha1();
         Hasher hasher = hashFunction.newHasher()
@@ -36,13 +41,5 @@ class CreateModuleFromDirectoryTest extends Specification {
         HashCode hashCode = hasher.hash()
         println "sha1:" + hashCode.toString()
 
-
-        // http://stackoverflow.com/questions/7225313/how-does-git-compute-file-hashes
-
-        /*
-        How does GIT compute its commit hashes
-
-        Commit Hash (SHA1) = SHA1("blob" + <size_of_file> + "\0" + <contents_of_file>)
-         */
     }
 }
