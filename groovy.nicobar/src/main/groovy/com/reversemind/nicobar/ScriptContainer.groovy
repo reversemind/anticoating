@@ -43,16 +43,29 @@ class ScriptContainer {
     }
 
     public static void addScriptSourceDirectory(String moduleName, String moduleVersion, Path scriptSourceDirectory, boolean isSynchronize) {
+
+        // TODO validate directory structure for base path
+
         modulePathMap.put(ModuleId.create(moduleName, moduleVersion), scriptSourceDirectory);
     }
 
+    /**
+     * // TODO Describe script directory structure
+     *
+     *
+     * @param moduleId
+     * @param scriptSourceDirectory
+     * @param isSynchronize
+     */
     public static void addScriptSourceDirectory(ModuleId moduleId, Path scriptSourceDirectory, boolean isSynchronize) {
         if(moduleId != null){
+
+            // TODO validate directory structure for base path
             modulePathMap.put(moduleId, scriptSourceDirectory);
         }
     }
 
-    public static void fullBuildModule(ModuleId moduleId){
+    public static void fullReBuildModule(ModuleId moduleId){
         if(moduleId == null){
             return;
         }
@@ -64,18 +77,18 @@ class ScriptContainer {
             return;
         }
 
+        BuildModule.validateAndCreateModulePaths(basePath);
+
         // #1 compile
         ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
                 .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
                 .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
                 .build();
 
-        Path scriptRootPath = Paths.get(basePath, "test-scripts", "src", "main").toAbsolutePath()
-
-        PathScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
-                .setRecurseRoot(true)
-                .setModuleSpec(moduleSpec)
-                .build();
+//        PathScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
+//                .setRecurseRoot(true)
+//                .setModuleSpec(moduleSpec)
+//                .build();
 
 //        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get(BASE_PATH, "build", "classes").toAbsolutePath())
 //                .addScriptArchive(scriptArchive)

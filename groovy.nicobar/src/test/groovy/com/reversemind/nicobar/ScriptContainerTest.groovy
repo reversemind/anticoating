@@ -24,9 +24,18 @@ class ScriptContainerTest extends Specification {
         def moduleName = "precompiled"
         def moduleVersion = "v0_1-SNAPSHOT"
 
-        ScriptContainer scriptContainer = ScriptContainer.getInstance()
+        ModuleId moduleId = ModuleId.create(moduleName, moduleVersion)
 
-        scriptContainer.addScriptSourceDirectory(moduleName, moduleVersion, Paths.get(BASE_PATH), true);
+//        ScriptContainer scriptContainer = ScriptContainer.getInstance()
+//
+//        scriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
+//
+//        scriptContainer.fullReBuildModule(moduleId)
+
+//        ScriptContainer.executeScript(moduleId, "")
+
+        ScriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
+        ScriptContainer.fullReBuildModule(moduleId)
 
         when:
         BuildModule buildJarModule = new BuildModule(
