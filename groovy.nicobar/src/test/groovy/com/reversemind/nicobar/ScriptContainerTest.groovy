@@ -5,10 +5,7 @@ import com.netflix.nicobar.core.archive.JarScriptArchive
 import com.netflix.nicobar.core.archive.ModuleId
 import com.netflix.nicobar.core.archive.ScriptArchive
 import com.netflix.nicobar.core.archive.ScriptModuleSpec
-import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
-import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
-import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
-import org.codehaus.groovy.tools.GroovyClass
+import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
 import java.nio.file.Paths
@@ -16,9 +13,32 @@ import java.nio.file.Paths
 /**
  *
  */
+@Slf4j
 class ScriptContainerTest extends Specification {
 
-    def 'init scriptContainer'(){
+    def 'compile scripts and pack them into nicobar jar module'() {
+        setup:
+
+        def BASE_PATH = "src/test/resources/auto/"
+
+        def moduleName = "precompiled"
+        def moduleVersion = "v0_1-SNAPSHOT"
+
+        ScriptContainer scriptContainer = ScriptContainer.getInstance()
+
+        scriptContainer.addScriptSourceDirectory(moduleName, moduleVersion, Paths.get(BASE_PATH), true);
+
+        when:
+        BuildModule buildJarModule = new BuildModule(
+                moduleName,
+                moduleVersion,
+                Paths.get(BASE_PATH, "build", "classes").toAbsolutePath().toString());
+
+        then:
+        log.info ""
+    }
+
+    def 'load precompiled jar'() {
         setup:
 
         ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/precompiled.jar').toAbsolutePath())

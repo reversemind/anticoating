@@ -1,19 +1,20 @@
 package com.reversemind.nicobar
 
-import com.netflix.nicobar.core.archive.GsonScriptModuleSpecSerializer
-import com.netflix.nicobar.core.archive.JarScriptArchive
-import com.netflix.nicobar.core.archive.ModuleId
-import com.netflix.nicobar.core.archive.ScriptArchive
-import com.netflix.nicobar.core.archive.ScriptModuleSpec
-import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer
+import com.netflix.nicobar.core.archive.*
 import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.module.ScriptModuleUtils
+import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
+import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
+import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
 import com.reversemind.nicobar.utils.NicobarUtils
 import groovy.util.logging.Slf4j
+import org.codehaus.groovy.tools.GroovyClass
 
-import javax.annotation.Nullable
 import javax.validation.constraints.NotNull
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  *
@@ -28,12 +29,59 @@ class ScriptContainer {
     private static ScriptModuleLoader scriptModuleLoader
     private static ScriptContainer scriptContainer = new ScriptContainer();
 
+    private static BuildModule buildModule;
+
     private final static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
+
+    private static ConcurrentHashMap<ModuleId, Path> modulePathMap = new ConcurrentHashMap<ModuleId, Path>();
+
 
     private ScriptContainer() {}
 
     public static ScriptContainer getInstance() {
         return scriptContainer;
+    }
+
+    public static void addScriptSourceDirectory(String moduleName, String moduleVersion, Path scriptSourceDirectory, boolean isSynchronize) {
+        modulePathMap.put(ModuleId.create(moduleName, moduleVersion), scriptSourceDirectory);
+    }
+
+    public static void addScriptSourceDirectory(ModuleId moduleId, Path scriptSourceDirectory, boolean isSynchronize) {
+        if(moduleId != null){
+            modulePathMap.put(moduleId, scriptSourceDirectory);
+        }
+    }
+
+    public static void fullBuildModule(ModuleId moduleId){
+        if(moduleId == null){
+            return;
+        }
+
+        Path basePath = modulePathMap.get(moduleId);
+
+        if(basePath == null){
+            // TODO log message
+            return;
+        }
+
+        // #1 compile
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
+                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
+                .build();
+
+        Path scriptRootPath = Paths.get(basePath, "test-scripts", "src", "main").toAbsolutePath()
+
+        PathScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
+                .setRecurseRoot(true)
+                .setModuleSpec(moduleSpec)
+                .build();
+
+//        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get(BASE_PATH, "build", "classes").toAbsolutePath())
+//                .addScriptArchive(scriptArchive)
+//                .compile();
+
+
     }
 
     // TODO need assign lib directory for different types shareable jar's

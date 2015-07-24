@@ -59,6 +59,7 @@ class CreateModuleFromDirectoryTest extends Specification {
         setup:
 
         final String BASE_PATH = "src/test/resources/auto/";
+
         String moduleName = "precompiled"
         String moduleVersion = "v0_1-SNAPSHOT"
 

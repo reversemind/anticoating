@@ -22,6 +22,31 @@ import java.nio.file.Paths;
  */
 public class BuildModule {
 
+    /*
+
+        Structure
+
+        level at src - is a base path
+
+        BASE_PATH/
+                    src/main/script
+                            /com/company/packagename
+
+                    build
+                         /classes - compiled classes
+                         /libs - packed jar of module
+                         /modules - ready to tun modules
+
+     */
+    private static final String BUILD_NAME = "build";
+    private static final String CLASSES_SUBPATH = BUILD_NAME + File.separator + "classes";
+    private static final String LIBS_SUBPATH = BUILD_NAME + File.separator + "libs";
+    private static final String MODULES_SUBPATH = BUILD_NAME + File.separator + "modules";
+    private static final String SRC_MAIN_SCRIPT_SUBPATH = "src" + File.separator + "main" + File.separator + "script";
+
+    private static final String[] SUB_PATHS = {BUILD_NAME, CLASSES_SUBPATH, LIBS_SUBPATH, MODULES_SUBPATH};
+
+
     public static final String DEFAULT_MODULE_VERSION = "v0_1-SNAPSHOT";
 
     private final static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
@@ -105,4 +130,28 @@ public class BuildModule {
         bufferedWriter.close();
     }
 
+    // TODO need tests
+    public static boolean validateExistenceOfSubPath(Path basePath, String... subPaths) {
+        if (basePath == null) {
+            throw new IllegalArgumentException("Base path could not be an empty");
+        }
+        if (subPaths == null) {
+            return true;
+        }
+        return Paths.get(basePath.toAbsolutePath().toString(), subPaths).toFile().exists();
+    }
+
+    public static boolean validateAndCreateModulePaths(Path basePath) throws IOException {
+        if (basePath == null) {
+            throw new IllegalArgumentException("Base path could not be an empty");
+        }
+        for (String subPath : SUB_PATHS) {
+            if (!validateExistenceOfSubPath(basePath, subPath)) {
+                if (!Paths.get(basePath.toAbsolutePath().toString(), subPath).toFile().mkdirs()) {
+                    throw new IOException("Unable create to create sub paths:" + subPath);
+                }
+            }
+        }
+        return true;
+    }
 }

@@ -7,6 +7,9 @@ import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 /**
  *
  */
@@ -28,5 +31,20 @@ class BuildModuleTest extends Specification {
 
         then:
         deserialized.equals(expected);
+    }
+
+    def 'sub path validation'() {
+        setup:
+        log.info ""
+
+        Path basePath = Paths.get("src/test/resources/base-path/").toAbsolutePath()
+        boolean result = BuildModule.validateAndCreateModulePaths(basePath);
+
+        when:
+        log.info ""
+
+        then:
+        log.info ""
+        result == true
     }
 }
