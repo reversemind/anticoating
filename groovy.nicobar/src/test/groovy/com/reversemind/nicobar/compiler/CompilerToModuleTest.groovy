@@ -8,15 +8,10 @@ import com.netflix.nicobar.core.archive.ScriptModuleSpec
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
-import com.reversemind.nicobar.BuildJarModule
-import org.apache.tools.ant.BuildException
-import org.apache.tools.ant.Project
-import org.apache.tools.ant.Target
-import org.apache.tools.ant.taskdefs.Jar
+import com.reversemind.nicobar.BuildModule
 import org.codehaus.groovy.tools.GroovyClass
 import spock.lang.Specification
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -84,7 +79,7 @@ class CompilerToModuleTest extends Specification{
 
         // #3
 
-        BuildJarModule buildJarModule = new BuildJarModule("module",
+        BuildModule buildJarModule = new BuildModule("module",
                 "version",
                 Paths.get('src/main/resources/compileTo/package2').toAbsolutePath().toString());
 

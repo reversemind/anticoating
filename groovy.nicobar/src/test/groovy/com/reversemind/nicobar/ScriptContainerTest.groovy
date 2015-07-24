@@ -1,5 +1,6 @@
 package com.reversemind.nicobar
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.nicobar.core.archive.JarScriptArchive
 import com.netflix.nicobar.core.archive.ModuleId
 import com.netflix.nicobar.core.archive.ScriptArchive
@@ -23,12 +24,30 @@ class ScriptContainerTest extends Specification {
         ScriptArchive scriptArchive = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/precompiled.jar').toAbsolutePath())
                 .build();
 
+
+        JarScriptArchive jarScriptArchive = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/precompiled.jar').toAbsolutePath())
+                .build();
+
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
         scriptContainer.updateScriptArchive(scriptArchive)
 
         ModuleId moduleId = scriptArchive.getModuleSpec().getModuleId()
 
         scriptContainer.executeModule(moduleId)
+
+
+        println "go:" + jarScriptArchive.getArchiveEntryNames()
+
+
+        ScriptModuleSpec scriptModuleSpec = new JarScriptArchive.Builder(Paths.get('src/test/resources/libs/precompiled.jar').toAbsolutePath())
+                .build().getModuleSpec()
+
+        println "go:" + scriptModuleSpec
+
+        ObjectMapper mapper = new ObjectMapper();
+        println "json:" + mapper.writeValueAsString(scriptModuleSpec);
+
+        scriptModuleSpec = new ScriptModuleSpec();
     }
 
 }

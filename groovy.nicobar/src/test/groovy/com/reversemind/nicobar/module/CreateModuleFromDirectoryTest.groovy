@@ -4,18 +4,13 @@ import com.google.common.hash.HashCode
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hasher
 import com.google.common.hash.Hashing
-import com.netflix.nicobar.core.archive.JarScriptArchive
-import com.netflix.nicobar.core.archive.ModuleId
-import com.netflix.nicobar.core.archive.PathScriptArchive
-import com.netflix.nicobar.core.archive.ScriptArchive
-import com.netflix.nicobar.core.archive.ScriptModuleSpec
+import com.netflix.nicobar.core.archive.*
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
-import com.reversemind.nicobar.BuildJarModule
+import com.reversemind.nicobar.BuildModule
 import com.reversemind.nicobar.ScriptContainer
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang3.StringUtils
 import org.codehaus.groovy.tools.GroovyClass
 import spock.lang.Specification
 
@@ -63,6 +58,7 @@ class CreateModuleFromDirectoryTest extends Specification {
     def 'compile and pack to module jar'(){
         setup:
 
+        final String BASE_PATH = "src/test/resources/auto/";
         String moduleName = "precompiled"
         String moduleVersion = "v0_1-SNAPSHOT"
 
@@ -71,14 +67,14 @@ class CreateModuleFromDirectoryTest extends Specification {
                 .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
                 .build();
 
-        Path scriptRootPath = Paths.get('src/test/resources/auto/source').toAbsolutePath()
+        Path scriptRootPath = Paths.get(BASE_PATH, "test-scripts", "src", "main").toAbsolutePath()
 
         PathScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
                 .setRecurseRoot(true)
                 .setModuleSpec(moduleSpec)
                 .build();
 
-        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get('src/test/resources/auto/target').toAbsolutePath())
+        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get(BASE_PATH, "build", "classes").toAbsolutePath())
                 .addScriptArchive(scriptArchive)
                 .compile();
 
@@ -87,27 +83,28 @@ class CreateModuleFromDirectoryTest extends Specification {
         }
 
         when:
-        BuildJarModule buildJarModule = new BuildJarModule(moduleName,
+        BuildModule buildJarModule = new BuildModule(
+                moduleName,
                 moduleVersion,
-                Paths.get('src/test/resources/auto/target').toAbsolutePath().toString(), true);
+                Paths.get(BASE_PATH, "build", "classes").toAbsolutePath().toString());
 
-        buildJarModule.toJar(Paths.get('src/test/resources/auto').toAbsolutePath());
+        buildJarModule.toJar(Paths.get(BASE_PATH, "build", "libs").toAbsolutePath());
 
         then:
-        println "PATH:" + Paths.get('src/test/resources/auto').toAbsolutePath();
-        true == Paths.get("src/test/resources/auto/" + getModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath().toFile().exists()
+        Paths
+                .get(BASE_PATH + BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar")
+                .toAbsolutePath()
+                .toFile()
+                .exists()
 
-
-        // copy to runnable dir
-        Path sourceJarPath = Paths.get("src/test/resources/auto/" + getModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
-        Path targetJarPath = Paths.get("src/test/resources/auto/runnable/" + getModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        // copy to runnible dir - 'modules'
+        Path sourceJarPath = Paths.get(BASE_PATH, "libs", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        Path targetJarPath = Paths.get(BASE_PATH, "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
         Files.copy(sourceJarPath, targetJarPath, StandardCopyOption.REPLACE_EXISTING);
 
 
-
         // load compiled module and run main script
-
-        Path modulePath = Paths.get("src/test/resources/auto/runnable/" + getModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath()
+        Path modulePath = Paths.get(BASE_PATH, "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
         ScriptArchive jarModule = new JarScriptArchive.Builder(modulePath).build();
 
         ScriptContainer scriptContainer = ScriptContainer.getInstance()

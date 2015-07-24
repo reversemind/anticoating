@@ -1,8 +1,11 @@
 package com.reversemind.nicobar
 
+import com.netflix.nicobar.core.archive.GsonScriptModuleSpecSerializer
+import com.netflix.nicobar.core.archive.JarScriptArchive
 import com.netflix.nicobar.core.archive.ModuleId
 import com.netflix.nicobar.core.archive.ScriptArchive
 import com.netflix.nicobar.core.archive.ScriptModuleSpec
+import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer
 import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.module.ScriptModuleUtils
@@ -18,10 +21,14 @@ import javax.validation.constraints.NotNull
 @Slf4j
 class ScriptContainer {
 
+    // TODO make map <canonicalClassName, moduleId>
+
     public static final String KEY_MAIN_SCRIPT = "mainScript";
 
     private static ScriptModuleLoader scriptModuleLoader
     private static ScriptContainer scriptContainer = new ScriptContainer();
+
+    private final static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
 
     private ScriptContainer() {}
 
@@ -36,6 +43,7 @@ class ScriptContainer {
         return scriptModuleLoader;
     }
 
+    // TODO add only a jar script archive?! what about a spec inside
     public static void updateScriptArchive(ScriptArchive scriptArchive) {
         getScriptModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
     }
