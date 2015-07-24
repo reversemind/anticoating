@@ -40,6 +40,36 @@ class ScriptContainer {
         getScriptModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
     }
 
+    public static void executeScript(ModuleId moduleId, String scriptName){
+        final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
+        if (scriptModule != null) {
+
+            Class clazz = ScriptModuleUtils.findClass(scriptModule, scriptName)
+            if (clazz != null) {
+                try {
+                    ScriptInvokerHelper.runScript(clazz)
+                } catch (Exception ex) {
+                    ex.printStackTrace()
+                }
+            }
+        }
+    }
+
+    public static void executeScript(ModuleId moduleId, String scriptName, Binding binding){
+        final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
+        if (scriptModule != null) {
+
+            Class clazz = ScriptModuleUtils.findClass(scriptModule, scriptName)
+            if (clazz != null) {
+                try {
+                    ScriptInvokerHelper.runScript(clazz, binding)
+                } catch (Exception ex) {
+                    ex.printStackTrace()
+                }
+            }
+        }
+    }
+
     public static void executeModule(ModuleId moduleId, Binding binding) {
         final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
         if (scriptModule != null) {

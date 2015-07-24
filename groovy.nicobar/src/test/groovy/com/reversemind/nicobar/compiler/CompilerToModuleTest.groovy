@@ -8,6 +8,7 @@ import com.netflix.nicobar.core.archive.ScriptModuleSpec
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
+import com.reversemind.nicobar.BuildJarModule
 import org.apache.tools.ant.BuildException
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.Target
@@ -88,39 +89,8 @@ class CompilerToModuleTest extends Specification{
                 Paths.get('src/main/resources/compileTo/package2').toAbsolutePath().toString());
 
         buildJarModule.toJar(Paths.get('src/main/resources').toAbsolutePath());
-
     }
 
 
-    public class BuildJarModule{
-        String name
-        String version
-        String compiledClassesPath
-        String jsonDescriptor
-
-        BuildJarModule(String name, String version, String compiledClassesPath) {
-            this.name = name
-            this.version = version
-            this.compiledClassesPath = compiledClassesPath
-        }
-
-        public BuildJarModule toJar(String targetDirectory){
-            String targetName = targetDirectory + File.separator + this.name + ".jar"
-            "jar -cvf ${targetName} -C ${this.compiledClassesPath} .".execute()
-            return this
-        }
-
-        public void toJar(Path targetDirectory) throws BuildException {
-            String targetName = targetDirectory.toAbsolutePath().toString() + File.separator + this.name + ".jar"
-
-            Jar jar = new Jar();
-            jar.setDestFile(new File(targetName));
-            jar.setBasedir(new File(Paths.get(this.compiledClassesPath).toAbsolutePath().toString()));
-            jar.setProject(new Project());
-
-            jar.execute();
-        }
-
-    }
 
 }
