@@ -10,7 +10,10 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Jar;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -58,12 +61,16 @@ public class BuildModule {
      * @param targetDirectory
      * @throws BuildException
      */
-    public void toJar(Path targetDirectory) throws BuildException {
+    public void toJar(Path targetDirectory) throws IOException, BuildException {
         String targetName = targetDirectory.toAbsolutePath().toString() + File.separator + createModuleNameForJarFile(this.moduleId.getName(), this.moduleId.getVersion()) + ".jar";
 
         Jar jar = new Jar();
         jar.setDestFile(new File(targetName));
         jar.setBasedir(new File(Paths.get(this.compiledClassesPath).toAbsolutePath().toString()));
+
+        // write default moduleSpec.json
+        writeToCompiledClassesDefaultModuleSpec(this.compiledClassesPath);
+
         jar.setProject(new Project());
         jar.execute();
     }
@@ -80,4 +87,22 @@ public class BuildModule {
                 .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID) // in this case we should not compile a content of jar file
                 .build();
     }
+
+    private void writeToCompiledClassesDefaultModuleSpec(String path) throws IOException {
+        final String json = DEFAULT_MODULE_SPEC_SERIALIZER.serialize(getDefaultScriptModuleSpec());
+        if (StringUtils.isBlank(json)) {
+            return;
+        }
+
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(
+                Paths.get(path,
+                        GsonScriptModuleSpecSerializer.DEFAULT_MODULE_SPEC_FILE_NAME).toAbsolutePath()
+                        .toFile()
+        )
+        );
+        bufferedWriter.write(json);
+        bufferedWriter.flush();
+        bufferedWriter.close();
+    }
+
 }

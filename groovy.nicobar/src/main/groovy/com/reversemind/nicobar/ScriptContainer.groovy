@@ -36,6 +36,7 @@ class ScriptContainer {
         return scriptContainer;
     }
 
+    // TODO need assign lib directory for different types shareable jar's
     public static ScriptModuleLoader getScriptModuleLoader() {
         if (scriptModuleLoader == null) {
             scriptModuleLoader = NicobarUtils.createFullScriptModuleLoader().build()

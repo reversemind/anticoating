@@ -92,19 +92,19 @@ class CreateModuleFromDirectoryTest extends Specification {
 
         then:
         Paths
-                .get(BASE_PATH + BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar")
+                .get(BASE_PATH, "build", "libs", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar")
                 .toAbsolutePath()
                 .toFile()
                 .exists()
 
         // copy to runnible dir - 'modules'
-        Path sourceJarPath = Paths.get(BASE_PATH, "libs", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
-        Path targetJarPath = Paths.get(BASE_PATH, "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        Path sourceJarPath = Paths.get(BASE_PATH, "build", "libs", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        Path targetJarPath = Paths.get(BASE_PATH, "build", "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
         Files.copy(sourceJarPath, targetJarPath, StandardCopyOption.REPLACE_EXISTING);
 
 
         // load compiled module and run main script
-        Path modulePath = Paths.get(BASE_PATH, "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        Path modulePath = Paths.get(BASE_PATH, "build", "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
         ScriptArchive jarModule = new JarScriptArchive.Builder(modulePath).build();
 
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
@@ -117,7 +117,5 @@ class CreateModuleFromDirectoryTest extends Specification {
         scriptContainer.executeScript(moduleId, "com.company.script");
 
     }
-
-
 
 }
