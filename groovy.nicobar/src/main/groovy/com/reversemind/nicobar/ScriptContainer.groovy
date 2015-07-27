@@ -25,8 +25,10 @@ class ScriptContainer implements IScriptContainerListener {
 
     public static final String KEY_MAIN_SCRIPT = "mainScript";
 
+    private static ScriptContainer scriptContainer = null;
+    private final static Object mutex = new Object();
+
     private static ScriptModuleLoader scriptModuleLoader
-    private static ScriptContainer scriptContainer = new ScriptContainer();
 
     private final
     static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
@@ -38,6 +40,11 @@ class ScriptContainer implements IScriptContainerListener {
     private ScriptContainer() {}
 
     public static ScriptContainer getInstance() {
+        if (scriptContainer == null) {
+            synchronized (mutex) {
+                if (ScriptContainer == null) scriptContainer = new ScriptContainer();
+            }
+        }
         return scriptContainer;
     }
 
