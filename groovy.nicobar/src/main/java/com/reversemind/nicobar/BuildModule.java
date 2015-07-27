@@ -27,7 +27,7 @@ import java.util.Set;
 public class BuildModule {
 
     /*
-        Structure of project is close to idea of maven & gradle structure project
+        Structure of project is close to maven & gradle structure project
 
         BASE_PATH/
                    modules/ - ready to tun modules
@@ -113,6 +113,7 @@ public class BuildModule {
                 .toAbsolutePath()
                 .toFile();
 
+        // use Ant jar builder
         Jar jar = new Jar();
         jar.setDestFile(targetJarName);
 
@@ -276,7 +277,7 @@ public class BuildModule {
          */
 
         Set<GroovyClass> compiledClasses = null;
-        try{
+        try {
             compiledClasses = new Groovy2CompilerHelper(
                     Paths.get(
                             this.basePath.toAbsolutePath().toString(),
@@ -288,13 +289,13 @@ public class BuildModule {
                     .addScriptArchive(scriptArchive)
                     .compile();
 
-        }catch (ScriptCompilationException ex){
+        } catch (ScriptCompilationException ex) {
             ex.printStackTrace();
             System.out.println("\n\n\n unable to compile \n\n\n\n");
         }
 
-        if(compiledClasses != null){
-            for(GroovyClass groovyClass: compiledClasses){
+        if (compiledClasses != null) {
+            for (GroovyClass groovyClass : compiledClasses) {
                 System.out.println("DEBUG INFO class:" + groovyClass.getName());
             }
 
@@ -313,12 +314,10 @@ public class BuildModule {
                 .toAbsolutePath();
 
         Path targetJarPath = getModuleJarPath();
-
-        // TODO need extra checks !!! if module file exists
         Files.copy(sourceJarPath, targetJarPath, StandardCopyOption.REPLACE_EXISTING);
     }
 
-    public Path getModuleJarPath(){
+    public Path getModuleJarPath() {
         return Paths.get(
                 this.basePath.toAbsolutePath().toString(),
                 MODULES_SUBPATH,
@@ -354,6 +353,7 @@ public class BuildModule {
 
     /**
      * Get path to runnable module
+     *
      * @return BASE_PATH/modules/moduleName_moduleVersion.jar
      */
     public Path getModuleJarFilePath() {
@@ -366,9 +366,10 @@ public class BuildModule {
 
     /**
      * Get path of module root directory
+     *
      * @return - BASE_PATH/moduleName_moduleVersion
      */
-    public Path getModulePath(){
+    public Path getModulePath() {
         return Paths.get(
                 this.basePath.toAbsolutePath().toString(),
                 createModuleNameForJarFile(this.moduleId)
@@ -377,9 +378,10 @@ public class BuildModule {
 
     /**
      * Get path of script sources
+     *
      * @return - BASE_PATH/moduleName_moduleVersion/src/main
      */
-    public Path getModuleSrcPath(){
+    public Path getModuleSrcPath() {
         return Paths.get(
                 this.basePath.toAbsolutePath().toString(),
                 createModuleNameForJarFile(this.moduleId),

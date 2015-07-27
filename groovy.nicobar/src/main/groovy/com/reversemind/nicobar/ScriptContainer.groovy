@@ -1,4 +1,5 @@
 package com.reversemind.nicobar
+
 import com.netflix.nicobar.core.archive.*
 import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
@@ -8,34 +9,31 @@ import com.reversemind.nicobar.watcher.WatchDirectory
 import groovy.util.logging.Slf4j
 
 import javax.validation.constraints.NotNull
-import java.nio.file.FileSystems
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.PathMatcher
-import java.nio.file.SimpleFileVisitor
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.ConcurrentHashMap
 
 import static java.nio.file.FileVisitOption.FOLLOW_LINKS
+
 /**
  *
  */
 @Slf4j
-class ScriptContainer implements IScriptContainerListener{
+class ScriptContainer implements IScriptContainerListener {
 
-    // TODO make map <canonicalClassName, moduleId>
+    // TODO make map <canonicalClassName, moduleId> ??
 
     public static final String KEY_MAIN_SCRIPT = "mainScript";
 
     private static ScriptModuleLoader scriptModuleLoader
     private static ScriptContainer scriptContainer = new ScriptContainer();
 
-    private final static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
+    private final
+    static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
 
     private static ConcurrentHashMap<ModuleId, Path> modulePathMap = new ConcurrentHashMap<ModuleId, Path>();
-    private static ConcurrentHashMap<ModuleId, IPathWatcher> listenerPathMap = new ConcurrentHashMap<ModuleId, IPathWatcher>();
-
+    private
+    static ConcurrentHashMap<ModuleId, IPathWatcher> listenerPathMap = new ConcurrentHashMap<ModuleId, IPathWatcher>();
 
     private ScriptContainer() {}
 
@@ -44,7 +42,7 @@ class ScriptContainer implements IScriptContainerListener{
     }
 
     // TODO is it need to check existence of SRC of this jar module??
-    public void loadModules(Path modulesPath){
+    public void loadModules(Path modulesPath) {
         // TODO download .jar of modules from path
         // TODO validate that exist src directories only in this case download modules
         Set<Path> _modulesPath = new HashSet<>();
@@ -77,9 +75,9 @@ class ScriptContainer implements IScriptContainerListener{
             );
         }
 
-        if(! _modulesPath.isEmpty()){
+        if (!_modulesPath.isEmpty()) {
 
-            for(Path path: _modulesPath){
+            for (Path path : _modulesPath) {
 
                 log.info "Going to load module:" + path.toAbsolutePath().toString()
 
@@ -90,12 +88,12 @@ class ScriptContainer implements IScriptContainerListener{
                 ScriptModuleSpec scriptModuleSpec = jarScriptArchive.getModuleSpec()
                 log.info "module spec:" + scriptModuleSpec
 
-                if(scriptModuleSpec != null){
+                if (scriptModuleSpec != null) {
                     ModuleId _moduleId = scriptModuleSpec.getModuleId()
                     log.info "module id:" + _moduleId
 
-                    if(_moduleId != null){
-                        if(! modulePathMap.containsKey(_moduleId)){
+                    if (_moduleId != null) {
+                        if (!modulePathMap.containsKey(_moduleId)) {
                             modulePathMap.put(_moduleId, path);
                         }
                         updateScriptArchive(jarScriptArchive);
@@ -114,11 +112,11 @@ class ScriptContainer implements IScriptContainerListener{
      * @param isSynchronize
      */
     public void addScriptSourceDirectory(ModuleId moduleId, Path baseDirectory, boolean isSynchronize) {
-        if(moduleId != null){
-            if(!modulePathMap.containsKey(moduleId)){
+        if (moduleId != null) {
+            if (!modulePathMap.containsKey(moduleId)) {
                 // TODO validate directory structure for base path before put in processing
                 modulePathMap.put(moduleId, baseDirectory);
-                if(isSynchronize){
+                if (isSynchronize) {
                     Path modulePath = new BuildModule(moduleId, baseDirectory).getModuleSrcPath()
                     new WatchDirectory(moduleId, this, modulePath, true).processEvents();
                 }
@@ -126,21 +124,25 @@ class ScriptContainer implements IScriptContainerListener{
         }
     }
 
-    public void reBuildModule(ModuleId moduleId){
-        if(moduleId == null){
+    /**
+     *
+     * @param moduleId
+     */
+    public void reBuildModule(ModuleId moduleId) {
+        if (moduleId == null) {
             return;
         }
 
         Path basePath = modulePathMap.get(moduleId);
 
-        if(basePath == null){
+        if (basePath == null) {
             // TODO log message
             return;
         }
 
-        synchronized (basePath){
+        synchronized (basePath) {
             BuildModule buildModule = new BuildModule(moduleId, basePath);
-            if(!buildModule.validateAndCreateModulePaths()){
+            if (!buildModule.validateAndCreateModulePaths()) {
                 return;
             }
 
@@ -156,20 +158,19 @@ class ScriptContainer implements IScriptContainerListener{
     }
 
     // TODO need assign lib directory for different types shareable jar's
-    public ScriptModuleLoader getScriptModuleLoader() {
+    protected ScriptModuleLoader getScriptModuleLoader() {
         if (scriptModuleLoader == null) {
             scriptModuleLoader = NicobarUtils.createFullScriptModuleLoader().build()
         }
         return scriptModuleLoader;
     }
 
-    // TODO add only a jar script archive?! what about a spec inside
     public void updateScriptArchive(ScriptArchive scriptArchive) {
         log.info "updating script archive:" + scriptArchive.moduleSpec
         getScriptModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
     }
 
-    public void executeScript(ModuleId moduleId, String scriptName){
+    public void executeScript(ModuleId moduleId, String scriptName) {
         final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
         if (scriptModule != null) {
 
@@ -178,48 +179,30 @@ class ScriptContainer implements IScriptContainerListener{
                 try {
                     ScriptInvokerHelper.runScript(clazz)
                 } catch (Exception ex) {
-                    ex.printStackTrace()
+                    log.error("Unable to execute script ${scriptName} for module:${moduleId}", ex)
                 }
             }
         }
     }
 
-    public static void executeScript(ModuleId moduleId, String scriptName, Binding binding){
+    public void executeScript(ModuleId moduleId, String scriptName, Binding binding) {
         final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
         if (scriptModule != null) {
 
             Class clazz = ScriptModuleUtils.findClass(scriptModule, scriptName)
             if (clazz != null) {
                 try {
-                    ScriptInvokerHelper.runScript(clazz, binding)
+                    ScriptInvokerHelper.runGroovyScript(clazz, binding)
                 } catch (Exception ex) {
-                    ex.printStackTrace()
+                    log.error("Unable to execute script ${scriptName} for module:${moduleId} with binding:${binding}", ex)
                 }
             }
-        }
-    }
-
-    public static void executeModule(ModuleId moduleId, Binding binding) {
-        final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
-        if (scriptModule != null) {
-            String mainScriptName = getMainScriptName(scriptModule.getSourceArchive())
-            if (mainScriptName != null)
-                mainScriptName = KEY_MAIN_SCRIPT;
-
-            Class clazz = ScriptModuleUtils.findClass(scriptModule, mainScriptName)
-            if (clazz != null) {
-                try {
-                    ScriptInvokerHelper.runScript(clazz, binding)
-                } catch (Exception ex) {
-                    ex.printStackTrace()
-                }
-            }
-
         }
     }
 
     public void executeModule(ModuleId moduleId) {
         log.info("Execute moduleId:", moduleId)
+
         final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
         if (scriptModule != null) {
             final String mainScriptName = getMainScriptName(scriptModule)
@@ -230,7 +213,7 @@ class ScriptContainer implements IScriptContainerListener{
                 } catch (Exception ex) {
                     ex.printStackTrace()
                 }
-            }else{
+            } else {
                 log.error("No classes found for name:", mainScriptName)
             }
         }
@@ -261,10 +244,11 @@ class ScriptContainer implements IScriptContainerListener{
     }
 
     @Override
-    synchronized void changed(ModuleId moduleId) {
-        new Thread(){
+    public synchronized void changed(ModuleId moduleId) {
+        // TODO change it - basically done for async
+        new Thread() {
             @Override
-            public void run(){
+            public void run() {
                 reBuildModule(moduleId);
             }
         }.start();
