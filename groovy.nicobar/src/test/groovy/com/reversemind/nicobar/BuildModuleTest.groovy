@@ -33,15 +33,34 @@ class BuildModuleTest extends Specification {
         deserialized.equals(expected);
     }
 
-    def 'sub path validation'() {
+    def 'sub path validate right subdirectory structure'() {
         setup:
         log.info ""
 
-        Path basePath = Paths.get("src/test/resources/base-path/").toAbsolutePath()
-        boolean result = BuildModule.validateAndCreateModulePaths(basePath);
+        final Path BASE_PATH = Paths.get("src/test/resources/base-path-right/").toAbsolutePath()
+        BuildModule buildModule = new BuildModule("moduleName", "moduleVersion", BASE_PATH);
 
         when:
         log.info ""
+
+        boolean result = buildModule.validateAndCreateModulePaths();
+
+        then:
+        log.info ""
+        result == true
+    }
+
+    def 'sub path validate wrong subdirectory structure'() {
+        setup:
+        log.info ""
+
+        final Path BASE_PATH = Paths.get("src/test/resources/base-path-wrong").toAbsolutePath()
+        BuildModule buildModule = new BuildModule("moduleName", "moduleVersion", BASE_PATH);
+
+        when:
+        log.info ""
+
+        boolean result = buildModule.validateAndCreateModulePaths();
 
         then:
         log.info ""
