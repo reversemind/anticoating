@@ -42,7 +42,7 @@ class ScriptContainer implements IScriptContainerListener {
     }
 
     // TODO is it need to check existence of SRC of this jar module??
-    public void loadModules(Path modulesPath) {
+    public ScriptContainer loadModules(Path modulesPath) {
         // TODO download .jar of modules from path
         // TODO validate that exist src directories only in this case download modules
         Set<Path> _modulesPath = new HashSet<>();
@@ -102,6 +102,7 @@ class ScriptContainer implements IScriptContainerListener {
             }
         }
 
+        return getInstance();
     }
 
     /**
@@ -111,50 +112,52 @@ class ScriptContainer implements IScriptContainerListener {
      * @param baseDirectory
      * @param isSynchronize
      */
-    public void addScriptSourceDirectory(ModuleId moduleId, Path baseDirectory, boolean isSynchronize) {
+    public ScriptContainer addScriptSourceDirectory(ModuleId moduleId, Path baseDirectory, boolean isSynchronize) {
         if (moduleId != null) {
             if (!modulePathMap.containsKey(moduleId)) {
                 // TODO validate directory structure for base path before put in processing
                 modulePathMap.put(moduleId, baseDirectory);
                 if (isSynchronize) {
-                    Path modulePath = new BuildModule(moduleId, baseDirectory).getModuleSrcPath()
+                    Path modulePath = new ModuleBuilder(moduleId, baseDirectory).getModuleSrcPath()
                     new WatchDirectory(moduleId, this, modulePath, true).processEvents();
                 }
             }
         }
+        return getInstance();
     }
 
     /**
      *
      * @param moduleId
      */
-    public void reBuildModule(ModuleId moduleId) {
+    public ScriptContainer reBuildModule(ModuleId moduleId) {
+        log.info "ReBuild module:" + moduleId
+
         if (moduleId == null) {
-            return;
+            return getInstance();
         }
 
         Path basePath = modulePathMap.get(moduleId);
-
         if (basePath == null) {
             // TODO log message
-            return;
+            return getInstance();
         }
 
         synchronized (basePath) {
-            BuildModule buildModule = new BuildModule(moduleId, basePath);
-            if (!buildModule.validateAndCreateModulePaths()) {
-                return;
+            ModuleBuilder moduleBuilder = new ModuleBuilder(moduleId, basePath);
+            if (!moduleBuilder.validateAndCreateModulePaths()) {
+                return getInstance();
             }
 
-            buildModule.build()
-            Path moduleJarPath = buildModule.getModuleJarPath();
+            moduleBuilder.build()
+            Path moduleJarPath = moduleBuilder.getModuleJarPath();
 
             JarScriptArchive jarScriptArchive = new JarScriptArchive.Builder(moduleJarPath)
                     .build();
 
             updateScriptArchive(jarScriptArchive);
         }
-
+        return getInstance();
     }
 
     // TODO need assign lib directory for different types shareable jar's
@@ -165,12 +168,13 @@ class ScriptContainer implements IScriptContainerListener {
         return scriptModuleLoader;
     }
 
-    public void updateScriptArchive(ScriptArchive scriptArchive) {
+    public ScriptContainer updateScriptArchive(ScriptArchive scriptArchive) {
         log.info "updating script archive:" + scriptArchive.moduleSpec
         getScriptModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
+        return getInstance();
     }
 
-    public void executeScript(ModuleId moduleId, String scriptName) {
+    public ScriptContainer executeScript(ModuleId moduleId, String scriptName) {
         final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
         if (scriptModule != null) {
 
@@ -183,12 +187,12 @@ class ScriptContainer implements IScriptContainerListener {
                 }
             }
         }
+        return getInstance();
     }
 
-    public void executeScript(ModuleId moduleId, String scriptName, Binding binding) {
+    public ScriptContainer executeScript(ModuleId moduleId, String scriptName, Binding binding) {
         final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
         if (scriptModule != null) {
-
             Class clazz = ScriptModuleUtils.findClass(scriptModule, scriptName)
             if (clazz != null) {
                 try {
@@ -198,9 +202,10 @@ class ScriptContainer implements IScriptContainerListener {
                 }
             }
         }
+        return getInstance();
     }
 
-    public void executeModule(ModuleId moduleId) {
+    public ScriptContainer executeModule(ModuleId moduleId) {
         log.info("Execute moduleId:", moduleId)
 
         final ScriptModule scriptModule = getScriptModuleLoader().getScriptModule(moduleId)
@@ -217,6 +222,7 @@ class ScriptContainer implements IScriptContainerListener {
                 log.error("No classes found for name:", mainScriptName)
             }
         }
+        return getInstance();
     }
 
     @NotNull

@@ -14,7 +14,7 @@ import java.nio.file.Paths
  *
  */
 @Slf4j
-class BuildModuleTest extends Specification {
+class ModuleBuilderTest extends Specification {
 
     final String moduleName = "moduleName"
     final String moduleVersion = "moduleVersion"
@@ -24,7 +24,7 @@ class BuildModuleTest extends Specification {
         setup:
 
         final Path BASE_PATH = Paths.get("src/test/resources/base-path-right/").toAbsolutePath()
-        ScriptModuleSpec expected = new BuildModule(moduleId, BASE_PATH).getDefaultScriptModuleSpec()
+        ScriptModuleSpec expected = new ModuleBuilder(moduleId, BASE_PATH).getDefaultScriptModuleSpec()
 
         when:
         ScriptModuleSpecSerializer serializer = new GsonScriptModuleSpecSerializer();
@@ -43,7 +43,7 @@ class BuildModuleTest extends Specification {
         log.info ""
 
         final Path BASE_PATH = Paths.get("src/test/resources/base-path-right/").toAbsolutePath()
-        BuildModule buildModule = new BuildModule(moduleId, BASE_PATH);
+        ModuleBuilder buildModule = new ModuleBuilder(moduleId, BASE_PATH);
 
         when:
         log.info ""
@@ -60,7 +60,7 @@ class BuildModuleTest extends Specification {
         log.info ""
 
         final Path BASE_PATH = Paths.get("src/test/resources/base-path-wrong").toAbsolutePath()
-        BuildModule buildModule = new BuildModule(moduleId, BASE_PATH);
+        ModuleBuilder buildModule = new ModuleBuilder(moduleId, BASE_PATH);
 
         when:
         log.info ""

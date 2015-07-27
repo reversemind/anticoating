@@ -8,7 +8,7 @@ import com.netflix.nicobar.core.archive.*
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
-import com.reversemind.nicobar.BuildModule
+import com.reversemind.nicobar.ModuleBuilder
 import com.reversemind.nicobar.ScriptContainer
 import groovy.util.logging.Slf4j
 import org.codehaus.groovy.tools.GroovyClass
@@ -83,7 +83,7 @@ class CreateModuleFromDirectoryTest extends Specification {
         }
 
         when:
-        BuildModule buildJarModule = new BuildModule(
+        ModuleBuilder buildJarModule = new ModuleBuilder(
                 moduleName,
                 moduleVersion,
                 Paths.get(BASE_PATH, "build", "classes").toAbsolutePath().toString());
@@ -92,19 +92,19 @@ class CreateModuleFromDirectoryTest extends Specification {
 
         then:
         Paths
-                .get(BASE_PATH, "build", "libs", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar")
+                .get(BASE_PATH, "build", "libs", ModuleBuilder.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar")
                 .toAbsolutePath()
                 .toFile()
                 .exists()
 
         // copy to runnible dir - 'modules'
-        Path sourceJarPath = Paths.get(BASE_PATH, "build", "libs", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
-        Path targetJarPath = Paths.get(BASE_PATH, "build", "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        Path sourceJarPath = Paths.get(BASE_PATH, "build", "libs", ModuleBuilder.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        Path targetJarPath = Paths.get(BASE_PATH, "build", "modules", ModuleBuilder.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
         Files.copy(sourceJarPath, targetJarPath, StandardCopyOption.REPLACE_EXISTING);
 
 
         // load compiled module and run main script
-        Path modulePath = Paths.get(BASE_PATH, "build", "modules", BuildModule.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
+        Path modulePath = Paths.get(BASE_PATH, "build", "modules", ModuleBuilder.createModuleNameForJarFile(moduleName, moduleVersion) + ".jar").toAbsolutePath();
         ScriptArchive jarModule = new JarScriptArchive.Builder(modulePath).build();
 
         ScriptContainer scriptContainer = ScriptContainer.getInstance()

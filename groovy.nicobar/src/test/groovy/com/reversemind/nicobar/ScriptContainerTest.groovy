@@ -21,21 +21,37 @@ class ScriptContainerTest extends Specification {
     final String moduleVersion = "moduleVersion"
     final ModuleId moduleId = ModuleId.create(moduleName, moduleVersion);
 
-    def 'load module jar and run some script'() {
+    def 'load modules jar and run some script'() {
         setup:
         log.info ""
 
-        final Path BASE_PATH = Paths.get("src/test/resources/auto/modules")
+        def BASE_PATH = "src/test/resources/auto/"
+
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
+
+        def moduleId1 = ModuleId.create("moduleName", "moduleVersion")
+        def moduleId1V2 = ModuleId.create("moduleName", "moduleVersion2")
+        def moduleId2 = ModuleId.create("moduleName2", "moduleVersion2")
+
+        scriptContainer
+                .addScriptSourceDirectory(moduleId1, Paths.get(BASE_PATH), true)
+                .reBuildModule(moduleId1)
+
+                .addScriptSourceDirectory(moduleId2, Paths.get(BASE_PATH), true)
+                .reBuildModule(moduleId1V2)
+
+                .addScriptSourceDirectory(moduleId1V2, Paths.get(BASE_PATH), true)
+                .reBuildModule(moduleId2);
+
+        final Path MODULES_PATH = Paths.get("src/test/resources/auto/modules")
 
         when:
         log.info ""
-        scriptContainer.loadModules(BASE_PATH)
+        scriptContainer.loadModules(MODULES_PATH)
 
         then:
         log.info ""
         scriptContainer.executeScript(moduleId, "com.company.script")
-
 
     }
 
@@ -46,8 +62,9 @@ class ScriptContainerTest extends Specification {
 
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
 
-        scriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
-        scriptContainer.reBuildModule(moduleId)
+        scriptContainer
+                .addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true)
+                .reBuildModule(moduleId)
 
         when:
         log.info ""
@@ -76,24 +93,28 @@ class ScriptContainerTest extends Specification {
         def moduleId1V2 = ModuleId.create("moduleName", "moduleVersion2")
         def moduleId2 = ModuleId.create("moduleName2", "moduleVersion2")
 
-        scriptContainer.addScriptSourceDirectory(moduleId1, Paths.get(BASE_PATH), true);
-        scriptContainer.addScriptSourceDirectory(moduleId2, Paths.get(BASE_PATH), true);
-        scriptContainer.addScriptSourceDirectory(moduleId1V2, Paths.get(BASE_PATH), true);
-        scriptContainer.reBuildModule(moduleId1)
-        scriptContainer.reBuildModule(moduleId1V2)
-        scriptContainer.reBuildModule(moduleId2)
+        scriptContainer
+                .addScriptSourceDirectory(moduleId1, Paths.get(BASE_PATH), true)
+                .reBuildModule(moduleId1)
+
+                .addScriptSourceDirectory(moduleId2, Paths.get(BASE_PATH), true)
+                .reBuildModule(moduleId1V2)
+
+                .addScriptSourceDirectory(moduleId1V2, Paths.get(BASE_PATH), true)
+                .reBuildModule(moduleId2);
 
         when:
         log.info ""
 
-        ScriptContainer.executeScript(moduleId1, "com.company.script")
-        ScriptContainer.executeScript(moduleId1V2, "com.company.script")
-        ScriptContainer.executeScript(moduleId2, "com.company.packagesuper.script")
-
+        scriptContainer
+                .executeScript(moduleId1, "com.company.script")
+                .executeScript(moduleId1V2, "com.company.script")
+                .executeScript(moduleId2, "com.company.packagesuper.script")
 
         Thread.sleep(10000);
-        scriptContainer.reBuildModule(moduleId1V2)
-        ScriptContainer.executeScript(moduleId1V2, "com.company.script")
+        scriptContainer
+                .reBuildModule(moduleId1V2)
+                .executeScript(moduleId1V2, "com.company.script")
 
         then:
         log.info ""

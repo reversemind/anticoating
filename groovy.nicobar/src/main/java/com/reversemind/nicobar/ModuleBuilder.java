@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  *
  */
-public class BuildModule {
+public class ModuleBuilder {
 
     /*
         Structure of project is close to maven & gradle structure project
@@ -70,7 +70,7 @@ public class BuildModule {
     private Path basePath;
     private String jsonDescriptor;
 
-    public BuildModule(ModuleId moduleId, Path basePath) {
+    public ModuleBuilder(ModuleId moduleId, Path basePath) {
         if (moduleId == null) {
             throw new IllegalArgumentException("ModuleId name can not be null or empty.");
         }
@@ -87,7 +87,7 @@ public class BuildModule {
         this.basePath = basePath;
     }
 
-    public BuildModule(String name, String version, Path basePath) {
+    public ModuleBuilder(String name, String version, Path basePath) {
         this(ModuleId.create(name, version), basePath);
     }
 
@@ -231,8 +231,8 @@ public class BuildModule {
 
             Exception in thread "Thread-7" com.netflix.nicobar.core.compile.ScriptCompilationException: Exception during script compilation
                 at com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper.compile(Groovy2CompilerHelper.java:130)
-                at com.reversemind.nicobar.BuildModule.build(BuildModule.java:236)
-                at com.reversemind.nicobar.BuildModule$build$1.call(Unknown Source)
+                at com.reversemind.nicobar.ModuleBuilder.build(ModuleBuilder.java:236)
+                at com.reversemind.nicobar.ModuleBuilder$build$1.call(Unknown Source)
                 at com.reversemind.nicobar.ScriptContainer.reBuildModule(ScriptContainer.groovy:86)
                 at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
                 at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)

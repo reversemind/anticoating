@@ -16,7 +16,7 @@ import static java.nio.file.StandardWatchEventKinds.*
 /**
  * Adaptation of a directory watcher (or tree) for changes to files.
  *
- * // TODO need listener from BuildModule - when it's possible to watch for directory - means after compilation and so on
+ * // TODO need listener from ModuleBuilder - when it's possible to watch for directory - means after compilation and so on
  */
 @Slf4j
 public class WatchDirectory {
@@ -51,6 +51,7 @@ public class WatchDirectory {
             register(directory);
         }
 
+        // TODO it's not optimal solution
         scheduledThreadPool.scheduleAtFixedRate(new WorkerThread(), 5, 5, TimeUnit.SECONDS);
 
         // enable trace after initial registration

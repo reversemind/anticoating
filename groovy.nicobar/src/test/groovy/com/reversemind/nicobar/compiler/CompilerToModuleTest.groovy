@@ -8,7 +8,6 @@ import com.netflix.nicobar.core.archive.ScriptModuleSpec
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
-import com.reversemind.nicobar.BuildModule
 import org.codehaus.groovy.tools.GroovyClass
 import spock.lang.Specification
 
