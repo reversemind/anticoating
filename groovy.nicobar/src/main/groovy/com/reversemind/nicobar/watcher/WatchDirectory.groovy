@@ -205,10 +205,10 @@ public class WatchDirectory {
         @Override
         public void run() {
             if (isTriggered) {
-                System.out.println(Thread.currentThread().getName() + " Start. Time = " + new Date());
+                System.out.println("\n\n////////////////////////////////////////\n" + Thread.currentThread().getName() + " Start. Time = " + new Date());
                 scriptContainerListener.changed(moduleId)
                 isTriggered = false;
-                System.out.println(Thread.currentThread().getName() + " End. Time = " + new Date());
+                System.out.println("\n\n\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n" + Thread.currentThread().getName() + " End. Time = " + new Date());
             }
         }
     }
