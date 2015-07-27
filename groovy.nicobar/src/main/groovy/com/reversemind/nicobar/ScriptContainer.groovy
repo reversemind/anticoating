@@ -29,8 +29,6 @@ class ScriptContainer {
     private static ScriptModuleLoader scriptModuleLoader
     private static ScriptContainer scriptContainer = new ScriptContainer();
 
-    private static BuildModule buildModule;
-
     private final static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
 
     private static ConcurrentHashMap<ModuleId, Path> modulePathMap = new ConcurrentHashMap<ModuleId, Path>();
@@ -52,16 +50,15 @@ class ScriptContainer {
     /**
      * // TODO Describe script directory structure
      *
-     *
      * @param moduleId
-     * @param scriptSourceDirectory
+     * @param baseDirectory
      * @param isSynchronize
      */
-    public static void addScriptSourceDirectory(ModuleId moduleId, Path scriptSourceDirectory, boolean isSynchronize) {
+    public static void addScriptSourceDirectory(ModuleId moduleId, Path baseDirectory, boolean isSynchronize) {
         if(moduleId != null){
 
             // TODO validate directory structure for base path
-            modulePathMap.put(moduleId, scriptSourceDirectory);
+            modulePathMap.put(moduleId, baseDirectory);
         }
     }
 
@@ -77,24 +74,14 @@ class ScriptContainer {
             return;
         }
 
-        BuildModule.validateAndCreateModulePaths(basePath);
+        BuildModule buildModule = new BuildModule(moduleId, basePath);
+        buildModule.build()
+        Path moduleJarPath = buildModule.getModuleJarPath();
 
-        // #1 compile
-        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
-                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
-                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
+        JarScriptArchive jarScriptArchive = new JarScriptArchive.Builder(moduleJarPath)
                 .build();
 
-//        PathScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
-//                .setRecurseRoot(true)
-//                .setModuleSpec(moduleSpec)
-//                .build();
-
-//        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(Paths.get(BASE_PATH, "build", "classes").toAbsolutePath())
-//                .addScriptArchive(scriptArchive)
-//                .compile();
-
-
+        updateScriptArchive(jarScriptArchive);
     }
 
     // TODO need assign lib directory for different types shareable jar's

@@ -79,11 +79,6 @@ class CompilerToModuleTest extends Specification{
 
         // #3
 
-        BuildModule buildJarModule = new BuildModule("module",
-                "version",
-                Paths.get('src/main/resources/compileTo/package2').toAbsolutePath().toString());
-
-        buildJarModule.toJar(Paths.get('src/main/resources').toAbsolutePath());
     }
 
 

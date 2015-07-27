@@ -16,32 +16,24 @@ import java.nio.file.Paths
 @Slf4j
 class ScriptContainerTest extends Specification {
 
+    final String moduleName = "moduleName"
+    final String moduleVersion = "moduleVersion"
+    final ModuleId moduleId = ModuleId.create(moduleName, moduleVersion);
+
     def 'compile scripts and pack them into nicobar jar module'() {
         setup:
 
         def BASE_PATH = "src/test/resources/auto/"
 
-        def moduleName = "precompiled"
-        def moduleVersion = "v0_1-SNAPSHOT"
-
-        ModuleId moduleId = ModuleId.create(moduleName, moduleVersion)
-
-//        ScriptContainer scriptContainer = ScriptContainer.getInstance()
-//
-//        scriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
-//
-//        scriptContainer.fullReBuildModule(moduleId)
-
-//        ScriptContainer.executeScript(moduleId, "")
+        ScriptContainer scriptContainer = ScriptContainer.getInstance()
 
         ScriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
         ScriptContainer.fullReBuildModule(moduleId)
 
         when:
-        BuildModule buildJarModule = new BuildModule(
-                moduleName,
-                moduleVersion,
-                Paths.get(BASE_PATH, "build", "classes").toAbsolutePath().toString());
+        log.info ""
+
+        ScriptContainer.executeScript(moduleId, "com.company.script")
 
         then:
         log.info ""

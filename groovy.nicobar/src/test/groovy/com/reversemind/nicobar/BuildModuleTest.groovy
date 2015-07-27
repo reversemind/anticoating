@@ -16,10 +16,15 @@ import java.nio.file.Paths
 @Slf4j
 class BuildModuleTest extends Specification {
 
+    final String moduleName = "moduleName"
+    final String moduleVersion = "moduleVersion"
+    final ModuleId moduleId = ModuleId.create(moduleName, moduleVersion);
+
     def 'generate default module spec'() {
         setup:
-        ModuleId moduleId = ModuleId.create("name", "version");
-        ScriptModuleSpec expected = new BuildModule(moduleId, null).getDefaultScriptModuleSpec()
+
+        final Path BASE_PATH = Paths.get("src/test/resources/base-path-right/").toAbsolutePath()
+        ScriptModuleSpec expected = new BuildModule(moduleId, BASE_PATH).getDefaultScriptModuleSpec()
 
         when:
         ScriptModuleSpecSerializer serializer = new GsonScriptModuleSpecSerializer();
@@ -38,7 +43,7 @@ class BuildModuleTest extends Specification {
         log.info ""
 
         final Path BASE_PATH = Paths.get("src/test/resources/base-path-right/").toAbsolutePath()
-        BuildModule buildModule = new BuildModule("moduleName", "moduleVersion", BASE_PATH);
+        BuildModule buildModule = new BuildModule(moduleId, BASE_PATH);
 
         when:
         log.info ""
@@ -55,7 +60,7 @@ class BuildModuleTest extends Specification {
         log.info ""
 
         final Path BASE_PATH = Paths.get("src/test/resources/base-path-wrong").toAbsolutePath()
-        BuildModule buildModule = new BuildModule("moduleName", "moduleVersion", BASE_PATH);
+        BuildModule buildModule = new BuildModule(moduleId, BASE_PATH);
 
         when:
         log.info ""
