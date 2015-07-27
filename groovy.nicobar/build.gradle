@@ -43,6 +43,8 @@ dependencies {
 // Do not need 'cause Netflix uses a gson
 //    compile 'com.fasterxml.jackson.core:jackson-core:2.6.0'
 
+    compile 'org.eclipse.jgit:org.eclipse.jgit:4.0.1.201506240215-r'
+
     testCompile 'org.testng:testng:6.0.1'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'cglib:cglib:3.1'
