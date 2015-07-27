@@ -51,7 +51,7 @@ public class WatchDirectory {
             register(directory);
         }
 
-        // TODO it's not optimal solution
+        // TODO it's not optimal solution - what about JGit - use API for git
         scheduledThreadPool.scheduleAtFixedRate(new WorkerThread(), 5, 5, TimeUnit.SECONDS);
 
         // enable trace after initial registration
