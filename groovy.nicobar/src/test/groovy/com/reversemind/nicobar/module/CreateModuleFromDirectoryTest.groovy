@@ -29,7 +29,6 @@ class CreateModuleFromDirectoryTest extends Specification {
         setup:
         log.info "GO"
 
-
         // #1 Watch directory
 
         // #2 Create module for directory

@@ -104,6 +104,7 @@ public class BuildModule {
 
         // moduleName_moduleVersion/build/libs/moduleName_moduleVersion.jar
         String moduleName_moduleVersion = createModuleNameForJarFile(this.moduleId.getName(), this.moduleId.getVersion());
+
         File targetJarName = Paths.get(
                 basePath.toAbsolutePath().toString(),
                 moduleName_moduleVersion,
@@ -224,23 +225,82 @@ public class BuildModule {
                 .setModuleSpec(moduleSpec)
                 .build();
 
-        Set<GroovyClass> compiledClasses = new Groovy2CompilerHelper(
-                        Paths.get(
-                                this.basePath.toAbsolutePath().toString(),
-                                createModuleNameForJarFile(this.moduleId),
-                                CLASSES_SUBPATH
-                        )
-                        .toAbsolutePath()
-                )
-                .addScriptArchive(scriptArchive)
-                .compile();
+        /*
+        // TODO
 
-        for(GroovyClass groovyClass: compiledClasses){
-            System.out.println("DEBUG INFO class:" + groovyClass.getName());
+            Exception in thread "Thread-7" com.netflix.nicobar.core.compile.ScriptCompilationException: Exception during script compilation
+                at com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper.compile(Groovy2CompilerHelper.java:130)
+                at com.reversemind.nicobar.BuildModule.build(BuildModule.java:236)
+                at com.reversemind.nicobar.BuildModule$build$1.call(Unknown Source)
+                at com.reversemind.nicobar.ScriptContainer.reBuildModule(ScriptContainer.groovy:86)
+                at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+                at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+                at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+                at java.lang.reflect.Method.invoke(Method.java:497)
+                at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:90)
+                at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:324)
+                at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1206)
+                at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.invokeMethodOnCurrentN(ScriptBytecodeAdapter.java:80)
+                at com.reversemind.nicobar.ScriptContainer.this$dist$invoke$1(ScriptContainer.groovy)
+                at com.reversemind.nicobar.ScriptContainer$1.methodMissing(ScriptContainer.groovy)
+                at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+                at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+                at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+                at java.lang.reflect.Method.invoke(Method.java:497)
+                at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:90)
+                at groovy.lang.MetaClassImpl.invokeMissingMethod(MetaClassImpl.java:932)
+                at groovy.lang.MetaClassImpl.invokePropertyOrMissing(MetaClassImpl.java:1255)
+                at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1208)
+                at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1015)
+                at org.codehaus.groovy.runtime.callsite.PogoMetaClassSite.callCurrent(PogoMetaClassSite.java:66)
+                at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:141)
+                at com.reversemind.nicobar.ScriptContainer$1.run(ScriptContainer.groovy:204)
+            Caused by: org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
+            file:/opt/dev/github/reversemind/anticoating/groovy.nicobar/src/test/resources/auto/moduleName_moduleVersion/src/main/groovy/com/company/.%23script.groovy: /opt/dev/github/reversemind/anticoating/groovy.nicobar/src/test/resources/auto/moduleName_moduleVersion/src/main/groovy/com/company/.#script.groovy (No such file or directory)
+
+            1 error
+
+                at org.codehaus.groovy.control.ErrorCollector.failIfErrors(ErrorCollector.java:309)
+                at org.codehaus.groovy.control.ErrorCollector.addError(ErrorCollector.java:106)
+                at org.codehaus.groovy.control.ErrorCollector.addFatalError(ErrorCollector.java:148)
+                at org.codehaus.groovy.control.SourceUnit.parse(SourceUnit.java:242)
+                at org.codehaus.groovy.control.CompilationUnit$1.call(CompilationUnit.java:164)
+                at org.codehaus.groovy.control.CompilationUnit.applyToSourceUnits(CompilationUnit.java:923)
+                at org.codehaus.groovy.control.CompilationUnit.doPhaseOperation(CompilationUnit.java:585)
+                at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:561)
+                at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:538)
+                at com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper.compile(Groovy2CompilerHelper.java:128)
+                ... 25 more
+
+
+         */
+
+        Set<GroovyClass> compiledClasses = null;
+        try{
+            compiledClasses = new Groovy2CompilerHelper(
+                    Paths.get(
+                            this.basePath.toAbsolutePath().toString(),
+                            createModuleNameForJarFile(this.moduleId),
+                            CLASSES_SUBPATH
+                    )
+                            .toAbsolutePath()
+            )
+                    .addScriptArchive(scriptArchive)
+                    .compile();
+
+        }catch (ScriptCompilationException ex){
+            ex.printStackTrace();
+            System.out.println("\n\n\n unable to compile \n\n\n\n");
         }
 
-        packToJar();
-        copyToModuleDirectory();
+        if(compiledClasses != null){
+            for(GroovyClass groovyClass: compiledClasses){
+                System.out.println("DEBUG INFO class:" + groovyClass.getName());
+            }
+
+            packToJar();
+            copyToModuleDirectory();
+        }
     }
 
     private void copyToModuleDirectory() throws IOException {
@@ -292,6 +352,10 @@ public class BuildModule {
         return StringUtils.isNotBlank(moduleId.getVersion()) ? moduleId.getName() + "_" + moduleId.getVersion() : moduleId.getName();
     }
 
+    /**
+     * Get path to runnable module
+     * @return BASE_PATH/modules/moduleName_moduleVersion.jar
+     */
     public Path getModuleJarFilePath() {
         return Paths.get(
                 this.basePath.toAbsolutePath().toString(),
@@ -300,10 +364,26 @@ public class BuildModule {
         );
     }
 
+    /**
+     * Get path of module root directory
+     * @return - BASE_PATH/moduleName_moduleVersion
+     */
     public Path getModulePath(){
         return Paths.get(
                 this.basePath.toAbsolutePath().toString(),
                 createModuleNameForJarFile(this.moduleId)
+        );
+    }
+
+    /**
+     * Get path of script sources
+     * @return - BASE_PATH/moduleName_moduleVersion/src/main
+     */
+    public Path getModuleSrcPath(){
+        return Paths.get(
+                this.basePath.toAbsolutePath().toString(),
+                createModuleNameForJarFile(this.moduleId),
+                SRC_MAIN_SCRIPT_SUBPATH
         );
     }
 }

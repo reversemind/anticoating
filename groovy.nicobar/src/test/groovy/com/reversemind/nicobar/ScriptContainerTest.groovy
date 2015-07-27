@@ -8,6 +8,7 @@ import com.netflix.nicobar.core.archive.ScriptModuleSpec
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -20,6 +21,24 @@ class ScriptContainerTest extends Specification {
     final String moduleVersion = "moduleVersion"
     final ModuleId moduleId = ModuleId.create(moduleName, moduleVersion);
 
+    def 'load module jar and run some script'() {
+        setup:
+        log.info ""
+
+        final Path BASE_PATH = Paths.get("src/test/resources/auto/modules")
+        ScriptContainer scriptContainer = ScriptContainer.getInstance()
+
+        when:
+        log.info ""
+        scriptContainer.loadModules(BASE_PATH)
+
+        then:
+        log.info ""
+        scriptContainer.executeScript(moduleId, "com.company.script")
+
+
+    }
+
     def 'compile scripts and pack them into nicobar jar module'() {
         setup:
 
@@ -28,18 +47,18 @@ class ScriptContainerTest extends Specification {
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
 
         scriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
-        scriptContainer.buildModule(moduleId)
+        scriptContainer.reBuildModule(moduleId)
 
         when:
         log.info ""
 
-        ScriptContainer.executeScript(moduleId, "com.company.script")
+        scriptContainer.executeScript(moduleId, "com.company.script")
         Thread.sleep(1000);
         log.info "\n\n\n\n\nready to change\n\n\n\n"
 
-        100.times(){
-            Thread.sleep(2000);
-            ScriptContainer.executeScript(moduleId, "com.company.script")
+        10000.times() {
+            Thread.sleep(70);
+            scriptContainer.executeScript(moduleId, "com.company.script")
         }
 
         then:
@@ -60,9 +79,9 @@ class ScriptContainerTest extends Specification {
         scriptContainer.addScriptSourceDirectory(moduleId1, Paths.get(BASE_PATH), true);
         scriptContainer.addScriptSourceDirectory(moduleId2, Paths.get(BASE_PATH), true);
         scriptContainer.addScriptSourceDirectory(moduleId1V2, Paths.get(BASE_PATH), true);
-        ScriptContainer.buildModule(moduleId1)
-        ScriptContainer.buildModule(moduleId1V2)
-        ScriptContainer.buildModule(moduleId2)
+        scriptContainer.reBuildModule(moduleId1)
+        scriptContainer.reBuildModule(moduleId1V2)
+        scriptContainer.reBuildModule(moduleId2)
 
         when:
         log.info ""
@@ -73,7 +92,7 @@ class ScriptContainerTest extends Specification {
 
 
         Thread.sleep(10000);
-        ScriptContainer.buildModule(moduleId1V2)
+        scriptContainer.reBuildModule(moduleId1V2)
         ScriptContainer.executeScript(moduleId1V2, "com.company.script")
 
         then:
