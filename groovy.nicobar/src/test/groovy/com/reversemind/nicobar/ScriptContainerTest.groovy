@@ -27,13 +27,54 @@ class ScriptContainerTest extends Specification {
 
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
 
-        ScriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
-        ScriptContainer.fullReBuildModule(moduleId)
+        scriptContainer.addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true);
+        scriptContainer.buildModule(moduleId)
 
         when:
         log.info ""
 
         ScriptContainer.executeScript(moduleId, "com.company.script")
+        Thread.sleep(1000);
+        log.info "\n\n\n\n\nready to change\n\n\n\n"
+
+        100.times(){
+            Thread.sleep(2000);
+            ScriptContainer.executeScript(moduleId, "com.company.script")
+        }
+
+        then:
+        log.info ""
+    }
+
+    def 'compile scripts and pack them into nicobar jar module make three modules'() {
+        setup:
+
+        def BASE_PATH = "src/test/resources/auto/"
+
+        ScriptContainer scriptContainer = ScriptContainer.getInstance()
+
+        def moduleId1 = ModuleId.create("moduleName", "moduleVersion")
+        def moduleId1V2 = ModuleId.create("moduleName", "moduleVersion2")
+        def moduleId2 = ModuleId.create("moduleName2", "moduleVersion2")
+
+        scriptContainer.addScriptSourceDirectory(moduleId1, Paths.get(BASE_PATH), true);
+        scriptContainer.addScriptSourceDirectory(moduleId2, Paths.get(BASE_PATH), true);
+        scriptContainer.addScriptSourceDirectory(moduleId1V2, Paths.get(BASE_PATH), true);
+        ScriptContainer.buildModule(moduleId1)
+        ScriptContainer.buildModule(moduleId1V2)
+        ScriptContainer.buildModule(moduleId2)
+
+        when:
+        log.info ""
+
+        ScriptContainer.executeScript(moduleId1, "com.company.script")
+        ScriptContainer.executeScript(moduleId1V2, "com.company.script")
+        ScriptContainer.executeScript(moduleId2, "com.company.packagesuper.script")
+
+
+        Thread.sleep(10000);
+        ScriptContainer.buildModule(moduleId1V2)
+        ScriptContainer.executeScript(moduleId1V2, "com.company.script")
 
         then:
         log.info ""

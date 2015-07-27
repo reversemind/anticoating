@@ -291,4 +291,19 @@ public class BuildModule {
 
         return StringUtils.isNotBlank(moduleId.getVersion()) ? moduleId.getName() + "_" + moduleId.getVersion() : moduleId.getName();
     }
+
+    public Path getModuleJarFilePath() {
+        return Paths.get(
+                this.basePath.toAbsolutePath().toString(),
+                MODULES_SUBPATH,
+                createModuleNameForJarFile(this.moduleId) + ".jar"
+        );
+    }
+
+    public Path getModulePath(){
+        return Paths.get(
+                this.basePath.toAbsolutePath().toString(),
+                createModuleNameForJarFile(this.moduleId)
+        );
+    }
 }

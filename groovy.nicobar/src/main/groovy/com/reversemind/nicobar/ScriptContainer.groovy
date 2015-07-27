@@ -4,12 +4,9 @@ import com.netflix.nicobar.core.archive.*
 import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.module.ScriptModuleUtils
-import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
-import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
-import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
 import com.reversemind.nicobar.utils.NicobarUtils
+import com.reversemind.nicobar.watcher.WatchDirectory
 import groovy.util.logging.Slf4j
-import org.codehaus.groovy.tools.GroovyClass
 
 import javax.validation.constraints.NotNull
 import java.nio.file.Path
@@ -20,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  */
 @Slf4j
-class ScriptContainer {
+class ScriptContainer implements IScriptContainerListener{
 
     // TODO make map <canonicalClassName, moduleId>
 
@@ -32,6 +29,7 @@ class ScriptContainer {
     private final static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
 
     private static ConcurrentHashMap<ModuleId, Path> modulePathMap = new ConcurrentHashMap<ModuleId, Path>();
+    private static ConcurrentHashMap<ModuleId, IPathWatcher> listenerPathMap = new ConcurrentHashMap<ModuleId, IPathWatcher>();
 
 
     private ScriptContainer() {}
@@ -40,11 +38,12 @@ class ScriptContainer {
         return scriptContainer;
     }
 
-    public static void addScriptSourceDirectory(String moduleName, String moduleVersion, Path scriptSourceDirectory, boolean isSynchronize) {
+    public void loadModules(Path modulesPath){
+        // TODO download .jar of modules from path
 
-        // TODO validate directory structure for base path
+        // TODO validate that exist src directories only in this case download modules
 
-        modulePathMap.put(ModuleId.create(moduleName, moduleVersion), scriptSourceDirectory);
+
     }
 
     /**
@@ -54,15 +53,21 @@ class ScriptContainer {
      * @param baseDirectory
      * @param isSynchronize
      */
-    public static void addScriptSourceDirectory(ModuleId moduleId, Path baseDirectory, boolean isSynchronize) {
+    public void addScriptSourceDirectory(ModuleId moduleId, Path baseDirectory, boolean isSynchronize) {
         if(moduleId != null){
 
             // TODO validate directory structure for base path
             modulePathMap.put(moduleId, baseDirectory);
+            if(isSynchronize){
+//            listenerPathMap.put(ModuleId.create(moduleName, moduleVersion), new PathWatcher(baseDirectory));
+
+                Path modulePath = new BuildModule(moduleId, baseDirectory).getModulePath()
+                new WatchDirectory(moduleId, this, modulePath, true).processEvents();
+            }
         }
     }
 
-    public static void fullReBuildModule(ModuleId moduleId){
+    public static void buildModule(ModuleId moduleId){
         if(moduleId == null){
             return;
         }
@@ -75,6 +80,9 @@ class ScriptContainer {
         }
 
         BuildModule buildModule = new BuildModule(moduleId, basePath);
+        if(!buildModule.validateAndCreateModulePaths()){
+            return;
+        }
         buildModule.build()
         Path moduleJarPath = buildModule.getModuleJarPath();
 
@@ -188,4 +196,8 @@ class ScriptContainer {
         return scriptModuleSpec.getMetadata().get(KEY_MAIN_SCRIPT) != null ? scriptModuleSpec.getMetadata().get(KEY_MAIN_SCRIPT) : KEY_MAIN_SCRIPT;
     }
 
+    @Override
+    synchronized void changed(ModuleId moduleId) {
+        buildModule(moduleId);
+    }
 }
