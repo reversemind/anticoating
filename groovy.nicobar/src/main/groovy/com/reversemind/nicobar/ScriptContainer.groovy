@@ -20,7 +20,7 @@ import static java.nio.file.FileVisitOption.FOLLOW_LINKS
 @Slf4j
 class ScriptContainer implements IScriptContainerListener {
 
-    // TODO make map <canonicalClassName, moduleId> ??
+    // TODO make map <canonicalClassName, moduleId> ?? for temp solution and simplification
 
     public static final String KEY_MAIN_SCRIPT = "mainScript";
 
@@ -225,7 +225,7 @@ class ScriptContainer implements IScriptContainerListener {
             Class clazz = ScriptModuleUtils.findClass(scriptModule, scriptName)
             if (clazz != null) {
                 try {
-                    ScriptInvokerHelper.runScript(clazz)
+                    ScriptInvokerHelper.runGroovyScript(clazz)
                 } catch (Exception ex) {
                     log.error("Unable to execute script ${scriptName} for module:${moduleId}", ex)
                 }
@@ -258,7 +258,7 @@ class ScriptContainer implements IScriptContainerListener {
             Class clazz = ScriptModuleUtils.findClass(scriptModule, mainScriptName)
             if (clazz != null) {
                 try {
-                    ScriptInvokerHelper.runScript(clazz)
+                    ScriptInvokerHelper.runGroovyScript(clazz)
                 } catch (Exception ex) {
                     ex.printStackTrace()
                 }

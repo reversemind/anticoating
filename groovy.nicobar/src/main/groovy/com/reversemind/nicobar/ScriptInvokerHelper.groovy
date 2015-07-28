@@ -18,15 +18,11 @@ public class ScriptInvokerHelper {
     }
 
     public static Object runGroovyScript(Class scriptClass, String[] args) {
-        Binding context = new Binding(args);
-        Script script = createGroovyScript(scriptClass, context);
-        return script != null ? script.run() : null
+        return runGroovyScript(scriptClass, new Binding(args));
     }
 
-    public static Object runScript(Class scriptClass) {
-        Binding context = new Binding();
-        Script script = createGroovyScript(scriptClass, context);
-        return script != null ? script.run() : null
+    public static Object runGroovyScript(Class scriptClass) {
+        return runGroovyScript(scriptClass, new Binding());
     }
 
     @Nullable
