@@ -19,7 +19,7 @@ import static java.nio.file.StandardWatchEventKinds.*
  * // TODO need listener from ModuleBuilder - when it's possible to watch for directory - means after compilation and so on
  */
 @Slf4j
-public class WatchDirectory {
+public class PathWatcher {
 
     private final WatchService watcher;
     private final Map<WatchKey, Path> keys;
@@ -33,26 +33,41 @@ public class WatchDirectory {
     private ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
     boolean isTriggered = false;
 
+    private final long watchPeriod
+    private final long notifyPeriod
+
     /**
      * Creates a WatchService and registers the given directory
      */
-    public WatchDirectory(ModuleId moduleId, IScriptContainerListener scriptContainerListener, Path directory, boolean recursive) throws IOException {
+    public PathWatcher(ModuleId moduleId,
+                       IScriptContainerListener scriptContainerListener,
+                       Path directory,
+                       boolean recursive,
+                       long watchPeriod,
+                       long notifyPeriod) throws IOException {
+
         this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey, Path>();
         this.recursive = recursive;
         this.scriptContainerListener = scriptContainerListener;
         this.moduleId = moduleId;
 
+        this.watchPeriod = watchPeriod <= 0 ? 100 : watchPeriod;
+        this.notifyPeriod = notifyPeriod <= 0 ? 5000 : notifyPeriod;
+
+        log.info "watchPeriod:${watchPeriod} ms";
+        log.info "notifyPeriod:${notifyPeriod} ms";
+
         if (recursive) {
             log.info "Scanning ${directory} ...\n"
             registerAll(directory);
-            log.info "Done."
+            log.info "Done"
         } else {
             register(directory);
         }
 
         // TODO it's not optimal solution - what about JGit - use API for git
-        scheduledThreadPool.scheduleAtFixedRate(new WorkerThread(), 5, 5, TimeUnit.SECONDS);
+        scheduledThreadPool.scheduleAtFixedRate(new NotifierThread(), notifyPeriod, notifyPeriod, TimeUnit.MILLISECONDS);
 
         // enable trace after initial registration
         this.trace = true;
@@ -159,7 +174,7 @@ public class WatchDirectory {
                         }
                     }
 
-                    Thread.sleep(100);
+                    Thread.sleep(watchPeriod);
                 }
             }
         }.start();
@@ -167,7 +182,7 @@ public class WatchDirectory {
     }
 
     static void usage() {
-        System.err.println("usage: java WatchDirectory [-r] directory");
+        System.err.println("usage: java PathWatcher [-r] directory");
         System.exit(-1);
     }
 
@@ -191,7 +206,7 @@ public class WatchDirectory {
 
         // register directory and process its events
         Path directory = Paths.get(args[dirArg]);
-        new WatchDirectory(ModuleId.create("moduleName", "moduleVersion"),
+        new PathWatcher(ModuleId.create("moduleName", "moduleVersion"),
                 new IScriptContainerListener() {
                     @Override
                     void changed(ModuleId moduleId) {
@@ -199,10 +214,10 @@ public class WatchDirectory {
                     }
                 },
                 directory,
-                recursive).processEvents();
+                recursive, 0, 0).processEvents();
     }
 
-    public class WorkerThread implements Runnable {
+    public class NotifierThread implements Runnable {
         @Override
         public void run() {
             if (isTriggered) {

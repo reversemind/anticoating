@@ -5,7 +5,6 @@ import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.module.ScriptModuleUtils
 import com.reversemind.nicobar.utils.NicobarUtils
-import com.reversemind.nicobar.watcher.WatchDirectory
 import groovy.util.logging.Slf4j
 
 import javax.validation.constraints.NotNull
@@ -29,6 +28,7 @@ class ScriptContainer implements IScriptContainerListener {
     private final static Object mutex = new Object();
 
     private static ScriptModuleLoader scriptModuleLoader
+    private static Set<Path> runtimeLibs = null;
 
     private final
     static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
@@ -48,7 +48,15 @@ class ScriptContainer implements IScriptContainerListener {
         return scriptContainer;
     }
 
-    // TODO is it need to check existence of SRC of this jar module??
+    /**
+     * BASE_DIRECTORY/
+     *               modules/moduleName_moduleVersion.jar
+     *               moduleName_moduleVersion/
+     *                                       src/main/groovy/com/company/package
+     * <p/>
+     * @param modulesPath - BASE_DIRECTORY/modules/
+     * @return
+     */
     public ScriptContainer loadModules(Path modulesPath) {
         // TODO download .jar of modules from path
         // TODO validate that exist src directories only in this case download modules
@@ -113,24 +121,53 @@ class ScriptContainer implements IScriptContainerListener {
     }
 
     /**
-     * // TODO Describe script directory structure
+     * BASE_DIRECTORY/
+     *               moduleName_moduleVersion/
+     *                                       src/main/groovy/com/company/package
      *
-     * @param moduleId
-     * @param baseDirectory
-     * @param isSynchronize
+     * @param moduleId - moduleName_moduleVersion
+     * @param baseDirectory - BASE_DIRECTORY
+     * @param isSynchronize - monitor any changes on file system at path BASE_PATH/moduleName_moduleVersion/src/main/groovy
      */
-    public ScriptContainer addScriptSourceDirectory(ModuleId moduleId, Path baseDirectory, boolean isSynchronize) {
+    public ScriptContainer addModule(final ModuleId moduleId, final Path baseDirectory, boolean isSynchronize) {
         if (moduleId != null) {
             if (!modulePathMap.containsKey(moduleId)) {
                 // TODO validate directory structure for base path before put in processing
                 modulePathMap.put(moduleId, baseDirectory);
                 if (isSynchronize) {
                     Path modulePath = new ModuleBuilder(moduleId, baseDirectory).getModuleSrcPath()
-                    new WatchDirectory(moduleId, this, modulePath, true).processEvents();
+                    new com.reversemind.nicobar.watcher.PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
                 }
             }
         }
         return getInstance();
+    }
+
+    // TODO here need an extra checks for src of module
+    public void loadModuleFromJar(ModuleId moduleId, final Path baseDirectory, boolean isSynchronize) {
+        Path modulePath = new ModuleBuilder(moduleId, baseDirectory).getModuleSrcPath()
+        log.info "Going to load module:" + modulePath.toAbsolutePath().toString()
+
+        // TODO logging
+        JarScriptArchive jarScriptArchive = new JarScriptArchive.Builder(modulePath.toAbsolutePath())
+                .build();
+
+        if (jarScriptArchive != null) {
+            ScriptModuleSpec scriptModuleSpec = jarScriptArchive.getModuleSpec()
+            log.info "module spec:" + scriptModuleSpec
+
+            if (scriptModuleSpec != null) {
+                ModuleId _moduleId = scriptModuleSpec.getModuleId()
+                log.info "module id:" + _moduleId
+
+                if (_moduleId != null) {
+                    if (!modulePathMap.containsKey(_moduleId)) {
+                        modulePathMap.put(_moduleId, path);
+                    }
+                    updateScriptArchive(jarScriptArchive);
+                }
+            }
+        }
     }
 
     /**
@@ -258,7 +295,7 @@ class ScriptContainer implements IScriptContainerListener {
 
     @Override
     public synchronized void changed(ModuleId moduleId) {
-        // TODO change it - basically done for async
+        // TODO refactor it - 'cause it's basically done for async
         new Thread() {
             @Override
             public void run() {

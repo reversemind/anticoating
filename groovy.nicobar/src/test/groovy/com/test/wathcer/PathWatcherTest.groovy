@@ -2,7 +2,7 @@ package com.test.wathcer
 
 import com.netflix.nicobar.core.archive.ModuleId
 import com.reversemind.nicobar.IScriptContainerListener
-import com.reversemind.nicobar.watcher.WatchDirectory
+import com.reversemind.nicobar.watcher.PathWatcher
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
@@ -13,7 +13,7 @@ import java.nio.file.Paths
  *
  */
 @Slf4j
-class WatchDirectoryTest extends Specification {
+class PathWatcherTest extends Specification {
 
     def 'watch dir'() {
         setup:
@@ -21,7 +21,7 @@ class WatchDirectoryTest extends Specification {
 
         Path directory = Paths.get('src/test/resources/watchdirectory').toAbsolutePath();
 
-        new WatchDirectory(ModuleId.create("moduleName", "moduleVersion"),
+        new PathWatcher(ModuleId.create("moduleName", "moduleVersion"),
                 new IScriptContainerListener() {
                     @Override
                     void changed(ModuleId moduleId) {
@@ -29,7 +29,7 @@ class WatchDirectoryTest extends Specification {
                     }
                 },
                 directory,
-                true).processEvents();
+                true, 0, 0).processEvents();
 
     }
 }

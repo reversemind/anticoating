@@ -34,13 +34,13 @@ class ScriptContainerTest extends Specification {
         def moduleId2 = ModuleId.create("moduleName2", "moduleVersion2")
 
         scriptContainer
-                .addScriptSourceDirectory(moduleId1, Paths.get(BASE_PATH), true)
+                .addModule(moduleId1, Paths.get(BASE_PATH), true)
                 .reBuildModule(moduleId1)
 
-                .addScriptSourceDirectory(moduleId2, Paths.get(BASE_PATH), true)
+                .addModule(moduleId2, Paths.get(BASE_PATH), true)
                 .reBuildModule(moduleId1V2)
 
-                .addScriptSourceDirectory(moduleId1V2, Paths.get(BASE_PATH), true)
+                .addModule(moduleId1V2, Paths.get(BASE_PATH), true)
                 .reBuildModule(moduleId2);
 
         final Path MODULES_PATH = Paths.get("src/test/resources/auto/modules")
@@ -63,7 +63,7 @@ class ScriptContainerTest extends Specification {
         ScriptContainer scriptContainer = ScriptContainer.getInstance()
 
         scriptContainer
-                .addScriptSourceDirectory(moduleId, Paths.get(BASE_PATH), true)
+                .addModule(moduleId, Paths.get(BASE_PATH), true)
                 .reBuildModule(moduleId)
 
         when:
@@ -94,13 +94,13 @@ class ScriptContainerTest extends Specification {
         def moduleId2 = ModuleId.create("moduleName2", "moduleVersion2")
 
         scriptContainer
-                .addScriptSourceDirectory(moduleId1, Paths.get(BASE_PATH), true)
+                .addModule(moduleId1, Paths.get(BASE_PATH), true)
                 .reBuildModule(moduleId1)
 
-                .addScriptSourceDirectory(moduleId2, Paths.get(BASE_PATH), true)
+                .addModule(moduleId2, Paths.get(BASE_PATH), true)
                 .reBuildModule(moduleId1V2)
 
-                .addScriptSourceDirectory(moduleId1V2, Paths.get(BASE_PATH), true)
+                .addModule(moduleId1V2, Paths.get(BASE_PATH), true)
                 .reBuildModule(moduleId2);
 
         when:
