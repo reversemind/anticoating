@@ -5,7 +5,6 @@ import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.module.ScriptModuleUtils
 import com.reversemind.nicobar.IPathWatcher
-import com.reversemind.nicobar.IScriptContainerListener
 import com.reversemind.nicobar.container.utils.NicobarUtils
 import groovy.util.logging.Slf4j
 
@@ -36,8 +35,6 @@ class ScriptContainer implements IScriptContainerListener {
     static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
 
     private static ConcurrentHashMap<ModuleId, Path> modulePathMap = new ConcurrentHashMap<ModuleId, Path>();
-    private
-    static ConcurrentHashMap<ModuleId, IPathWatcher> listenerPathMap = new ConcurrentHashMap<ModuleId, IPathWatcher>();
 
     private ScriptContainer() {}
 
@@ -134,7 +131,7 @@ class ScriptContainer implements IScriptContainerListener {
     public ScriptContainer addModule(final ModuleId moduleId, final Path baseDirectory, boolean isSynchronize) {
         if (moduleId != null) {
             if (!modulePathMap.containsKey(moduleId)) {
-                // TODO validate directory structure for base path before put in processing
+                // TODO validate directory structure for base path before put for the processing
                 modulePathMap.put(moduleId, baseDirectory);
                 if (isSynchronize) {
                     Path modulePath = new ModuleBuilder(moduleId, baseDirectory).getModuleSrcPath()

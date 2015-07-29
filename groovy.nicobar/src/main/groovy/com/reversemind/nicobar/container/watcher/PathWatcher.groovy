@@ -1,7 +1,7 @@
 package com.reversemind.nicobar.container.watcher
 
 import com.netflix.nicobar.core.archive.ModuleId
-import com.reversemind.nicobar.IScriptContainerListener
+import com.reversemind.nicobar.container.IScriptContainerListener
 import groovy.util.logging.Slf4j
 
 import java.nio.file.*

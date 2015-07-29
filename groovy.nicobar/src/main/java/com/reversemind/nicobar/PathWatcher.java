@@ -1,6 +1,7 @@
 package com.reversemind.nicobar;
 
 import com.netflix.nicobar.core.archive.ModuleId;
+import com.reversemind.nicobar.container.IScriptContainerListener;
 
 import java.nio.file.Path;
 

@@ -1,4 +1,4 @@
-package com.reversemind.nicobar;
+package com.reversemind.nicobar.container;
 
 import com.netflix.nicobar.core.archive.ModuleId;
 
