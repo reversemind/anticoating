@@ -5,6 +5,7 @@ import com.netflix.nicobar.core.archive.JarScriptArchive
 import com.netflix.nicobar.core.archive.ModuleId
 import com.netflix.nicobar.core.archive.ScriptArchive
 import com.netflix.nicobar.core.archive.ScriptModuleSpec
+import com.reversemind.nicobar.container.ScriptContainer
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 

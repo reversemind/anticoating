@@ -1,4 +1,4 @@
-package com.reversemind.nicobar
+package com.reversemind.nicobar.container
 
 import org.codehaus.groovy.runtime.InvokerInvocationException
 import org.codehaus.groovy.runtime.metaclass.MetaClassRegistryImpl

@@ -1,6 +1,6 @@
 package com.reversemind.nicobar
 
-
+import com.reversemind.nicobar.container.ScriptInvokerHelper
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 

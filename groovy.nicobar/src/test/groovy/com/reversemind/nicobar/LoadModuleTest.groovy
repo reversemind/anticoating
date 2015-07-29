@@ -11,7 +11,8 @@ import com.netflix.nicobar.core.module.ScriptModuleUtils
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
-import com.reversemind.nicobar.utils.NicobarUtils
+import com.reversemind.nicobar.container.ScriptInvokerHelper
+import com.reversemind.nicobar.container.utils.NicobarUtils
 import groovy.util.logging.Slf4j
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.codehaus.groovy.tools.GroovyClass

@@ -1,4 +1,4 @@
-package com.reversemind.nicobar;
+package com.reversemind.nicobar.container;
 
 import com.netflix.nicobar.core.archive.*;
 import com.netflix.nicobar.core.compile.ScriptCompilationException;
@@ -231,9 +231,9 @@ public class ModuleBuilder {
 
             Exception in thread "Thread-7" com.netflix.nicobar.core.compile.ScriptCompilationException: Exception during script compilation
                 at com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper.compile(Groovy2CompilerHelper.java:130)
-                at com.reversemind.nicobar.ModuleBuilder.build(ModuleBuilder.java:236)
-                at com.reversemind.nicobar.ModuleBuilder$build$1.call(Unknown Source)
-                at com.reversemind.nicobar.ScriptContainer.reBuildModule(ScriptContainer.groovy:86)
+                at com.reversemind.nicobar.container.ModuleBuilder.build(ModuleBuilder.java:236)
+                at com.reversemind.nicobar.container.ModuleBuilder$build$1.call(Unknown Source)
+                at com.reversemind.nicobar.container.ScriptContainer.reBuildModule(ScriptContainer.groovy:86)
                 at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
                 at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
                 at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -242,8 +242,8 @@ public class ModuleBuilder {
                 at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:324)
                 at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1206)
                 at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.invokeMethodOnCurrentN(ScriptBytecodeAdapter.java:80)
-                at com.reversemind.nicobar.ScriptContainer.this$dist$invoke$1(ScriptContainer.groovy)
-                at com.reversemind.nicobar.ScriptContainer$1.methodMissing(ScriptContainer.groovy)
+                at com.reversemind.nicobar.container.ScriptContainer.this$dist$invoke$1(ScriptContainer.groovy)
+                at com.reversemind.nicobar.container.ScriptContainer$1.methodMissing(ScriptContainer.groovy)
                 at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
                 at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
                 at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -255,7 +255,7 @@ public class ModuleBuilder {
                 at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1015)
                 at org.codehaus.groovy.runtime.callsite.PogoMetaClassSite.callCurrent(PogoMetaClassSite.java:66)
                 at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:141)
-                at com.reversemind.nicobar.ScriptContainer$1.run(ScriptContainer.groovy:204)
+                at com.reversemind.nicobar.container.ScriptContainer$1.run(ScriptContainer.groovy:204)
             Caused by: org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
             file:/opt/dev/github/reversemind/anticoating/groovy.nicobar/src/test/resources/auto/moduleName_moduleVersion/src/main/groovy/com/company/.%23script.groovy: /opt/dev/github/reversemind/anticoating/groovy.nicobar/src/test/resources/auto/moduleName_moduleVersion/src/main/groovy/com/company/.#script.groovy (No such file or directory)
 

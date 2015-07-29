@@ -4,6 +4,7 @@ import com.netflix.nicobar.core.archive.GsonScriptModuleSpecSerializer
 import com.netflix.nicobar.core.archive.ModuleId
 import com.netflix.nicobar.core.archive.ScriptModuleSpec
 import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer
+import com.reversemind.nicobar.container.ModuleBuilder
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 

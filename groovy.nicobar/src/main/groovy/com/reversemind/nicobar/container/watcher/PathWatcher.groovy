@@ -1,4 +1,4 @@
-package com.reversemind.nicobar.watcher
+package com.reversemind.nicobar.container.watcher
 
 import com.netflix.nicobar.core.archive.ModuleId
 import com.reversemind.nicobar.IScriptContainerListener
@@ -144,7 +144,7 @@ public class PathWatcher {
                         Path name = ev.context();
                         Path child = directory.resolve(name);
 
-                        // print out event
+
                         log.info "${new Date().getTime()} | ${event.kind().name()} ${child}\n"
 
                         // TODO collapse a bunch of short events into single per predefinder period of time 100 ms

@@ -1,4 +1,4 @@
-package com.reversemind.nicobar.utils
+package com.reversemind.nicobar.container.utils
 
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
@@ -115,7 +115,7 @@ class NicobarUtils {
         /////////////////////////////////
         // Groovy2CompilerPlugin
 
-        // create the groovy plugin spec. this plugin specified a new com.reversemind.nicobar.utils.module and classloader called "Groovy2Runtime"
+        // create the groovy plugin spec. this plugin specified a new com.reversemind.nicobar.container.utils.module and classloader called "Groovy2Runtime"
         // which contains the groovy-all-n.n.n.jar and the jlee-nicobar project
         ScriptCompilerPluginSpec pluginSpec = new ScriptCompilerPluginSpec.Builder(Groovy2Compiler.GROOVY2_COMPILER_ID)
                 .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
@@ -137,7 +137,7 @@ class NicobarUtils {
         /////////////////////////////////
         // Groovy2CompilerPlugin
 
-        // create the groovy plugin spec. this plugin specified a new com.reversemind.nicobar.utils.module and classloader called "Groovy2Runtime"
+        // create the groovy plugin spec. this plugin specified a new com.reversemind.nicobar.container.utils.module and classloader called "Groovy2Runtime"
         // which contains the groovy-all-n.n.n.jar and the jlee-nicobar project
         ScriptCompilerPluginSpec pluginSpec = new ScriptCompilerPluginSpec.Builder(Groovy2Compiler.GROOVY2_COMPILER_ID)
                 .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())

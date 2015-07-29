@@ -2,7 +2,7 @@ package com.test.wathcer
 
 import com.netflix.nicobar.core.archive.ModuleId
 import com.reversemind.nicobar.IScriptContainerListener
-import com.reversemind.nicobar.watcher.PathWatcher
+import com.reversemind.nicobar.container.watcher.PathWatcher
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 

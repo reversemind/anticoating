@@ -1,10 +1,12 @@
-package com.reversemind.nicobar
+package com.reversemind.nicobar.container
 
 import com.netflix.nicobar.core.archive.*
 import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.module.ScriptModuleUtils
-import com.reversemind.nicobar.utils.NicobarUtils
+import com.reversemind.nicobar.IPathWatcher
+import com.reversemind.nicobar.IScriptContainerListener
+import com.reversemind.nicobar.container.utils.NicobarUtils
 import groovy.util.logging.Slf4j
 
 import javax.validation.constraints.NotNull
@@ -136,7 +138,7 @@ class ScriptContainer implements IScriptContainerListener {
                 modulePathMap.put(moduleId, baseDirectory);
                 if (isSynchronize) {
                     Path modulePath = new ModuleBuilder(moduleId, baseDirectory).getModuleSrcPath()
-                    new com.reversemind.nicobar.watcher.PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
+                    new com.reversemind.nicobar.container.watcher.PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
                 }
             }
         }
