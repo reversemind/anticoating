@@ -129,6 +129,26 @@ public class ModuleBuilder {
         jar.execute();
     }
 
+    // Temp solution - 'cause basically ModuleBuilder contains a logic of project structure
+    public void packToJar(Path compiledClassesPath, Path pathToJar) throws IOException, BuildException {
+
+        File targetJarName = pathToJar.toAbsolutePath().toFile();
+
+        // use Ant jar builder
+        Jar jar = new Jar();
+        jar.setDestFile(targetJarName);
+
+        // moduleName_moduleVersion/build/classes
+        File compiledClasses = compiledClassesPath.toAbsolutePath().toFile();
+        jar.setBasedir(compiledClasses);
+
+        // write default moduleSpec.json
+        writeToCompiledClassesDefaultModuleSpec(compiledClasses.getPath());
+
+        jar.setProject(new Project());
+        jar.execute();
+    }
+
     /**
      * in this case we should not compile a content of jar file
      *

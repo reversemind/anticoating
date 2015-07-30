@@ -153,4 +153,20 @@ class ScriptContainerTest extends Specification {
         scriptModuleSpec = new ScriptModuleSpec();
     }
 
+    def 'load module ids from path'(){
+        setup:
+        log.info ""
+
+        Path MODULES_CLASSES = Paths.get("src/test/resources/stage2/modules/classes").toAbsolutePath()
+
+        when:
+        log.info ""
+
+        Set<ModuleId> _set = ScriptContainer.getInstance().getModuleIdListAtPath(MODULES_CLASSES)
+
+        then:
+        log.info ""
+
+        _set.size() > 0
+    }
 }
