@@ -75,10 +75,6 @@ public class ModuleBuilder {
             throw new IllegalArgumentException("ModuleId name can not be null or empty.");
         }
 
-        if (moduleId.getName() == null || StringUtils.isBlank(moduleId.getName())) {
-            throw new IllegalArgumentException("Module name can not be null or empty.");
-        }
-
         if (basePath == null) {
             throw new IllegalArgumentException("Base path could not be an empty");
         }

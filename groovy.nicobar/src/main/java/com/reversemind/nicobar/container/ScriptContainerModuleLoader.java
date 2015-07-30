@@ -8,7 +8,6 @@ import com.netflix.nicobar.core.module.jboss.JBossModuleUtils;
 import com.netflix.nicobar.core.module.jboss.JBossScriptModule;
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
 import org.jboss.modules.ModuleLoadException;
@@ -25,9 +24,71 @@ import java.util.*;
  *
  */
 @Slf4j
-public class CustomScriptModuleLoader extends ScriptModuleLoader {
+public class ScriptContainerModuleLoader extends ScriptModuleLoader {
 
-    protected CustomScriptModuleLoader(Set<ScriptCompilerPluginSpec> pluginSpecs, ClassLoader appClassLoader, Set<String> appPackagePaths, Set<ScriptModuleListener> listeners, Path compilationRootDir) throws ModuleLoadException {
+    public static class Builder {
+        private final Set<ScriptCompilerPluginSpec> pluginSpecs=  new LinkedHashSet<ScriptCompilerPluginSpec>();
+        private final Set<ScriptModuleListener> listeners = new LinkedHashSet<ScriptModuleListener>();
+        private final Set<String> paths = new LinkedHashSet<String>();
+        private Path compilationRootDir;
+        private ClassLoader appClassLoader = ScriptContainerModuleLoader.class.getClassLoader();
+
+        public Builder() {
+        }
+        /** Add a language compiler plugin specification to the loader */
+        public Builder addPluginSpec(ScriptCompilerPluginSpec pluginSpec) {
+            if (pluginSpec != null) {
+                pluginSpecs.add(pluginSpec);
+            }
+            return this;
+        }
+        /**
+         * Use a specific classloader as the application classloader.
+         * @param loader the application classloader
+         */
+        public Builder withAppClassLoader(ClassLoader loader) {
+            Objects.requireNonNull(loader);
+            this.appClassLoader = loader;
+            return this;
+        }
+        /**
+         * Use a specific compilation root directory
+         * @param compilationRootDir the compilation directory root.
+         */
+        public Builder withCompilationRootDir(Path compilationRootDir) {
+            this.compilationRootDir = compilationRootDir;
+            return this;
+        }
+        /**
+         * Specify a set of packages to make available from the application classloader
+         * as runtime dependencies for all scripts loaded by this script module.
+         * @param incomingPaths a set of / separated package paths. No wildcards.
+         *        e.g. Specifying com/foo/bar/baz implies that all classes in packages
+         *        named com.foo.bar.baz.* will be visible to loaded modules.
+         */
+        public Builder addAppPackages(Set<String> incomingPaths) {
+            if (incomingPaths != null) {
+                paths.addAll(incomingPaths);
+            }
+            return this;
+        }
+        /** Add a archive poller which will be polled at the given interval */
+        public Builder addListener(ScriptModuleListener listener) {
+            if (listener != null) {
+                listeners.add(listener);
+            }
+            return this;
+        }
+        public ScriptContainerModuleLoader build() throws ModuleLoadException, IOException {
+            if (compilationRootDir == null) {
+                compilationRootDir = Files.createTempDirectory("ScriptContainerModuleLoader");
+            }
+
+            return new ScriptContainerModuleLoader(pluginSpecs, appClassLoader, paths, listeners, compilationRootDir);
+        }
+    }
+
+    protected ScriptContainerModuleLoader(Set<ScriptCompilerPluginSpec> pluginSpecs, ClassLoader appClassLoader, Set<String> appPackagePaths, Set<ScriptModuleListener> listeners, Path compilationRootDir) throws ModuleLoadException {
         super(pluginSpecs, appClassLoader, appPackagePaths, listeners, compilationRootDir);
     }
 
@@ -93,20 +154,21 @@ public class CustomScriptModuleLoader extends ScriptModuleLoader {
                 }
                 ModuleSpec moduleSpec;
                 ModuleIdentifier candidateRevisionId = updatedRevisionIdMap.get(scriptModuleId);
-                Path modulePath = Paths.get(candidateRevisionId.toString());
-                final Path moduleCompilationRoot = compilationRootDir.resolve(modulePath);
-                FileUtils.deleteQuietly(moduleCompilationRoot.toFile());
+
+                final Path moduleCompilationRoot = compilationRootDir.resolve(scriptModuleId.toString());
+                //FileUtils.deleteQuietly(moduleCompilationRoot.toFile());
                 try {
                     Files.createDirectories(moduleCompilationRoot);
-                } catch (IOException ioe) {
-                    notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.ARCHIVE_IO_EXCEPTION, ioe);
+                } catch (Exception ignore) {
+                    ignore.printStackTrace();
+                    //notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.ARCHIVE_IO_EXCEPTION, ioe);
                 }
 
                 try {
                     moduleSpec = createModuleSpec(scriptArchive, candidateRevisionId, updatedRevisionIdMap, moduleCompilationRoot);
                 } catch (ModuleLoadException e) {
-                    log.error("Exception loading archive " +
-                            scriptArchive.getModuleSpec().getModuleId(), e);
+//                    log.error("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId(), e);
+                    System.out.println("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId() + e);
                     notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.ARCHIVE_IO_EXCEPTION, e);
                     continue;
                 }
@@ -140,7 +202,8 @@ public class CustomScriptModuleLoader extends ScriptModuleLoader {
                     }
                 } catch (Exception e) {
                     // rollback
-                    log.error("Exception loading module " + candidateRevisionId, e);
+//                    log.error("Exception loading module " + candidateRevisionId, e);
+                    System.out.println("Exception loading module " + candidateRevisionId + e);
                     if (candidateArchives.contains(scriptArchive)) {
                         // this spec came from a candidate archive. Send reject notification
                         notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.COMPILE_FAILURE, e);
