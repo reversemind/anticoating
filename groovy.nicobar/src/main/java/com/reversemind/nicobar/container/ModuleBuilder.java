@@ -332,14 +332,14 @@ public class ModuleBuilder {
      * @param version
      * @return
      */
-    public String createModuleNameForJarFile(String name, String version) {
+    public static String createModuleNameForJarFile(final String name, final String version) {
         if (name == null || name.equals("")) {
             throw new IllegalArgumentException("Module name can not be null or empty.");
         }
         return StringUtils.isNotBlank(version) ? name + "_" + version : name;
     }
 
-    public String createModuleNameForJarFile(ModuleId moduleId) {
+    public static String createModuleNameForJarFile(final ModuleId moduleId) {
         if (moduleId == null) {
             throw new IllegalArgumentException("ModuleId can not be null or empty.");
         }

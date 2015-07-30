@@ -18,6 +18,8 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.+'
     compile 'commons-io:commons-io:2.4'
 
+    compile 'org.projectlombok:lombok:1.16.4'
+
     // Nicobar Netflix
     compile 'com.netflix.Nicobar:nicobar-manager:0.2.6'
     compile 'com.netflix.Nicobar:nicobar-core:0.2.6'
@@ -42,6 +44,7 @@ dependencies {
 //    compile 'com.fasterxml.jackson.core:jackson-core:2.6.0'
 
     compile 'org.eclipse.jgit:org.eclipse.jgit:4.0.1.201506240215-r'
+
 
     testCompile 'org.testng:testng:6.0.1'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'

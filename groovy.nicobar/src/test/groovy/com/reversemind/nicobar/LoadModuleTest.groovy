@@ -20,6 +20,7 @@ import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Paths
+import java.text.SimpleDateFormat
 
 /**
  *
@@ -200,6 +201,44 @@ class LoadModuleTest extends Specification {
 
         then:
         scriptModule != null
+    }
+
+
+
+    def 'go again'(){
+        setup:
+        ScriptModuleLoader moduleLoader = NicobarUtils
+                .createLightScriptModuleLoader()
+//                .withCompilationRootDir(Paths.get("src/test/resources/auto/modules").toAbsolutePath())
+//                .withCompilationRootDir(Paths.get("/opt/_del/modules").toAbsolutePath())
+                .withCompilationRootDir(Paths.get("/opt/_del/modules/").toAbsolutePath())
+
+                .build()
+
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(ModuleId.create("moduleName", "moduleVersion"))
+                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
+                .build()
+
+//        def scriptRootPath = Paths.get("src/test/resources/auto/moduleName_moduleVersion").toAbsolutePath()
+//        def scriptRootPath = Paths.get("/opt/_del/_go").toAbsolutePath()
+        def scriptRootPath = Paths.get("/opt/_del/modules/moduleName.moduleVersion:1438258136872").toAbsolutePath()
+        ScriptArchive scriptArchive = new PathScriptArchive.Builder(scriptRootPath)
+                .setRecurseRoot(true)
+                .setModuleSpec(moduleSpec)
+                .build();
+
+        moduleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
+
+        when:
+        log.info ""
+
+SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-DD-mm HH:MM:ss:SSS")
+
+        println "date:" + simpleDateFormat.format(new Date(1438257039246L))
+
+        then:
+        log.info ""
     }
 
     /**

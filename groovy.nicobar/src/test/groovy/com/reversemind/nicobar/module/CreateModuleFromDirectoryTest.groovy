@@ -88,7 +88,7 @@ class CreateModuleFromDirectoryTest extends Specification {
                 moduleVersion,
                 Paths.get(BASE_PATH, "build", "classes").toAbsolutePath().toString());
 
-        buildJarModule.toJar(Paths.get(BASE_PATH, "build", "libs").toAbsolutePath());
+        buildJarModule.packToJar(Paths.get(BASE_PATH, "build", "libs").toAbsolutePath());
 
         then:
         Paths
