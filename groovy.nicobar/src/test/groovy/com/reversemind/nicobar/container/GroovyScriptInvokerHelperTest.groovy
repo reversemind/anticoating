@@ -1,4 +1,4 @@
-package com.reversemind.nicobar
+package com.reversemind.nicobar.container
 
 import com.reversemind.nicobar.container.GroovyScriptInvokerHelper
 import groovy.util.logging.Slf4j
