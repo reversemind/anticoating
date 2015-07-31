@@ -166,7 +166,7 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
                 try {
                     moduleSpec = createModuleSpec(scriptArchive, candidateRevisionId, updatedRevisionIdMap, moduleCompilationRoot);
                 } catch (ModuleLoadException e) {
-                    log.error("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId(), e);
+//                    log.error("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId(), e);
                     System.out.println("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId() + e);
                     notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.ARCHIVE_IO_EXCEPTION, e);
                     continue;

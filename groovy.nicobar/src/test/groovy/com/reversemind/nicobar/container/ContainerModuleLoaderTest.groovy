@@ -8,6 +8,7 @@ import com.netflix.nicobar.core.module.BaseScriptModuleListener
 import com.netflix.nicobar.core.module.ScriptModule
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
+import com.reversemind.nicobar.container.utils.ContainerUtils
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
@@ -54,11 +55,11 @@ class ContainerModuleLoaderTest extends Specification {
         moduleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
         log.info "#2"
 
-
-        ModuleBuilder moduleBuilder = new ModuleBuilder(moduleId, MODULES_CLASSES);
-        moduleBuilder.packToJar(
-                getModulePath(MODULES_CLASSES, moduleId).toAbsolutePath(),
-                Paths.get(MODULES_LIBS.toAbsolutePath().toString(), moduleId.toString() + ".jar").toAbsolutePath()
+        ContainerUtils
+                .packToJar(
+                    getModulePath(MODULES_CLASSES, moduleId).toAbsolutePath(),
+                    Paths.get(MODULES_LIBS.toAbsolutePath().toString(), moduleId.toString() + ".jar").toAbsolutePath(),
+                    moduleId
         );
 
         when:

@@ -1,6 +1,6 @@
 package com.reversemind.nicobar
 
-import com.reversemind.nicobar.container.ScriptInvokerHelper
+import com.reversemind.nicobar.container.GroovyScriptInvokerHelper
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
@@ -13,7 +13,7 @@ import java.util.jar.JarFile
  *
  */
 @Slf4j
-class ScriptInvokerHelperTest extends Specification {
+class GroovyScriptInvokerHelperTest extends Specification {
 
     def 'create groovy script from compiled class inside jar'() {
         setup:
@@ -26,15 +26,16 @@ class ScriptInvokerHelperTest extends Specification {
         log.info "\nwhen:\n"
 
         Class clazz = findClassInJar(canonicalClassName, preCompiledJarPath);
-        Script script = ScriptInvokerHelper.createGroovyScript(clazz, new Binding());
-        ScriptInvokerHelper.runGroovyScript(clazz)
+
+        Script script = GroovyScriptInvokerHelper.createGroovyScript(clazz, new Binding());
+        GroovyScriptInvokerHelper.runGroovyScript(clazz)
 
         then:
         log.info "\nthen:\n"
 
         clazz != null
         script != null
-        ScriptInvokerHelper.runGroovyScript(clazz) == null
+        GroovyScriptInvokerHelper.runGroovyScript(clazz) == null
     }
 
     private Class findClassInJar(String canonicalClassName, Path pathToJarFile) {

@@ -8,7 +8,7 @@ import javax.annotation.Nullable
 /**
  * Customized adaptation of InvokerHelper
  */
-public class ScriptInvokerHelper {
+public class GroovyScriptInvokerHelper {
 
     private static final Object[] EMPTY_MAIN_ARGS = [];
 
