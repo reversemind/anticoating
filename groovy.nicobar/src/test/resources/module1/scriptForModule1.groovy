@@ -1,1 +1,0 @@
-println "Hi from scriptForModule1.groovy at " + new Date()

@@ -51,7 +51,7 @@ class ScriptInvokerHelperTest extends Specification {
 
             if (canonicalClassName.equals(
                     entry.getName()
-                    // remove ".class"
+                            // remove ".class"
                             .substring(0, entry.getName().length() - 6)
                             .replace('/', '.')
             )

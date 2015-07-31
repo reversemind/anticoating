@@ -1,5 +1,9 @@
 package com.reversemind.nicobar.container.utils
 
+import com.netflix.nicobar.core.archive.GsonScriptModuleSpecSerializer
+import com.netflix.nicobar.core.archive.ModuleId
+import com.netflix.nicobar.core.archive.ScriptModuleSpec
+import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer
 import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec
@@ -7,6 +11,10 @@ import com.netflix.nicobar.core.utils.ClassPathUtils
 import com.netflix.nicobar.example.groovy2.ExampleResourceLocator
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2Compiler
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
+import org.apache.commons.lang3.StringUtils
+import org.apache.tools.ant.BuildException
+import org.apache.tools.ant.Project
+import org.apache.tools.ant.taskdefs.Jar
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -15,6 +23,51 @@ import java.nio.file.Paths
  *
  */
 class NicobarUtils {
+
+    private final static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
+
+    def
+    static void packToJar(Path compiledClassesPath, Path pathToJar, ModuleId moduleId) throws IOException, BuildException {
+
+        File targetJarName = pathToJar.toAbsolutePath().toFile();
+
+        // use Ant jar builder
+        Jar jar = new Jar();
+        jar.setDestFile(targetJarName);
+
+        // moduleName_moduleVersion/build/classes
+        File compiledClasses = compiledClassesPath.toAbsolutePath().toFile();
+        jar.setBasedir(compiledClasses);
+
+        // write default moduleSpec.json
+        writeToCompiledClassesDefaultModuleSpec(compiledClasses.getPath(), moduleId);
+
+        jar.setProject(new Project());
+        jar.execute();
+    }
+
+    protected static ScriptModuleSpec getDefaultScriptModuleSpec(ModuleId moduleId) {
+        return new ScriptModuleSpec.Builder(moduleId)
+                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID) // in this case we should not compile a content of jar file
+                .build();
+    }
+
+    private static void writeToCompiledClassesDefaultModuleSpec(String path, ModuleId moduleId) throws IOException {
+        final String json = DEFAULT_MODULE_SPEC_SERIALIZER.serialize(getDefaultScriptModuleSpec(moduleId));
+        if (StringUtils.isBlank(json)) {
+            return;
+        }
+
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(
+                Paths.get(path,
+                        GsonScriptModuleSpecSerializer.DEFAULT_MODULE_SPEC_FILE_NAME).toAbsolutePath()
+                        .toFile()
+        )
+        );
+        bufferedWriter.write(json);
+        bufferedWriter.flush();
+        bufferedWriter.close();
+    }
 
     def
     static ScriptModuleLoader.Builder createFullScriptModuleLoader() throws Exception {

@@ -45,7 +45,7 @@ public class CustomScriptModuleBuilder {
                 .addPluginSpec(pluginSpecByteCode);
     }
 
-    static ScriptCompilerPluginSpec buildGroovy2CompilerSpec() {
+    private static ScriptCompilerPluginSpec buildGroovy2CompilerSpec() {
         // #1
         /////////////////////////////////
         // Groovy2CompilerPlugin
