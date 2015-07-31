@@ -24,14 +24,14 @@ import java.util.*;
  *
  */
 @Slf4j
-public class ScriptContainerModuleLoader extends ScriptModuleLoader {
+public class ContainerModuleLoader extends ScriptModuleLoader {
 
     public static class Builder {
         private final Set<ScriptCompilerPluginSpec> pluginSpecs=  new LinkedHashSet<ScriptCompilerPluginSpec>();
         private final Set<ScriptModuleListener> listeners = new LinkedHashSet<ScriptModuleListener>();
         private final Set<String> paths = new LinkedHashSet<String>();
         private Path compilationRootDir;
-        private ClassLoader appClassLoader = ScriptContainerModuleLoader.class.getClassLoader();
+        private ClassLoader appClassLoader = ContainerModuleLoader.class.getClassLoader();
 
         public Builder() {
         }
@@ -79,16 +79,16 @@ public class ScriptContainerModuleLoader extends ScriptModuleLoader {
             }
             return this;
         }
-        public ScriptContainerModuleLoader build() throws ModuleLoadException, IOException {
+        public ContainerModuleLoader build() throws ModuleLoadException, IOException {
             if (compilationRootDir == null) {
-                compilationRootDir = Files.createTempDirectory("ScriptContainerModuleLoader");
+                compilationRootDir = Files.createTempDirectory("ContainerModuleLoader");
             }
 
-            return new ScriptContainerModuleLoader(pluginSpecs, appClassLoader, paths, listeners, compilationRootDir);
+            return new ContainerModuleLoader(pluginSpecs, appClassLoader, paths, listeners, compilationRootDir);
         }
     }
 
-    protected ScriptContainerModuleLoader(Set<ScriptCompilerPluginSpec> pluginSpecs, ClassLoader appClassLoader, Set<String> appPackagePaths, Set<ScriptModuleListener> listeners, Path compilationRootDir) throws ModuleLoadException {
+    protected ContainerModuleLoader(Set<ScriptCompilerPluginSpec> pluginSpecs, ClassLoader appClassLoader, Set<String> appPackagePaths, Set<ScriptModuleListener> listeners, Path compilationRootDir) throws ModuleLoadException {
         super(pluginSpecs, appClassLoader, appPackagePaths, listeners, compilationRootDir);
     }
 
@@ -156,7 +156,6 @@ public class ScriptContainerModuleLoader extends ScriptModuleLoader {
                 ModuleIdentifier candidateRevisionId = updatedRevisionIdMap.get(scriptModuleId);
 
                 final Path moduleCompilationRoot = compilationRootDir.resolve(scriptModuleId.toString());
-                //FileUtils.deleteQuietly(moduleCompilationRoot.toFile());
                 try {
                     Files.createDirectories(moduleCompilationRoot);
                 } catch (Exception ignore) {
@@ -167,7 +166,7 @@ public class ScriptContainerModuleLoader extends ScriptModuleLoader {
                 try {
                     moduleSpec = createModuleSpec(scriptArchive, candidateRevisionId, updatedRevisionIdMap, moduleCompilationRoot);
                 } catch (ModuleLoadException e) {
-//                    log.error("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId(), e);
+                    log.error("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId(), e);
                     System.out.println("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId() + e);
                     notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.ARCHIVE_IO_EXCEPTION, e);
                     continue;

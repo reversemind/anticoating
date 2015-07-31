@@ -18,7 +18,7 @@ import java.nio.file.Paths
  *
  */
 @Slf4j
-class ScriptContainerModuleLoaderTest extends Specification {
+class ContainerModuleLoaderTest extends Specification {
 
     def 'reuse compiled modules and compile from sources again'() {
         setup:
@@ -30,7 +30,7 @@ class ScriptContainerModuleLoaderTest extends Specification {
 
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
 
-        ScriptContainerModuleLoader moduleLoader = CustomScriptModuleBuilder.createScriptModuleLoader()
+        ContainerModuleLoader moduleLoader = CustomScriptModuleBuilder.createScriptModuleLoader()
                 .withCompilationRootDir(MODULES_CLASSES)
                 .addListener(new BaseScriptModuleListener() {                // add an example listener for module updates
                     public void moduleUpdated(ScriptModule newScriptModule, ScriptModule oldScriptModule) {
