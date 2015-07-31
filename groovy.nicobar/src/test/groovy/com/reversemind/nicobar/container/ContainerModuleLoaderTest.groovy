@@ -25,22 +25,24 @@ class ContainerModuleLoaderTest extends Specification {
         setup:
         log.info ""
 
-        Path MODULES_CLASSES = Paths.get("src/test/resources/stage2/modules/classes").toAbsolutePath()
-        Path MODULES_SRC = Paths.get("src/test/resources/stage2/modules/src").toAbsolutePath()
-        Path MODULES_LIBS = Paths.get("src/test/resources/stage2/modules/libs").toAbsolutePath()
+        final String BASE_PATH = "src/test/resources/base-path/modules";
+
+        Path MODULES_CLASSES = Paths.get(BASE_PATH, "classes").toAbsolutePath()
+        Path MODULES_SRC = Paths.get(BASE_PATH, "src").toAbsolutePath()
+        Path MODULES_LIBS = Paths.get(BASE_PATH, "libs").toAbsolutePath()
 
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
 
-        ContainerModuleLoader moduleLoader = CustomScriptModuleBuilder.createScriptModuleLoader()
-                .withCompilationRootDir(MODULES_CLASSES)
-                .addListener(new BaseScriptModuleListener() {                // add an example listener for module updates
-                    public void moduleUpdated(ScriptModule newScriptModule, ScriptModule oldScriptModule) {
-                        System.out.printf("\n\n----------------------------------------" +
-                                "\nReceived module update event. newModule: %s,  oldModule: %s%n" +
-                                "\n\n", newScriptModule, oldScriptModule);
-                    }
-                })
+        Set<Path> runtimeJars = new HashSet<>();
+        runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
+
+
+        new Container.Builder(MODULES_SRC, MODULES_CLASSES, MODULES_LIBS)
+                .setRuntimeJarLibs(runtimeJars)
                 .build()
+
+        ContainerModuleLoader moduleLoader = Container.getInstance()
+                .getModuleLoader()
 
         // #1 build from source to classes directory
         ScriptArchive scriptArchive = getScriptArchiveAtPath(MODULES_SRC, moduleId);

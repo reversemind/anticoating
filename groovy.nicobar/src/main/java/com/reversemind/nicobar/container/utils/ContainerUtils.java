@@ -1,23 +1,38 @@
-package com.reversemind.nicobar.container.utils
+package com.reversemind.nicobar.container.utils;
 
-import com.netflix.nicobar.core.archive.GsonScriptModuleSpecSerializer
-import com.netflix.nicobar.core.archive.ModuleId
-import com.netflix.nicobar.core.archive.ScriptModuleSpec
-import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer
-import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
-import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec
-import com.netflix.nicobar.core.utils.ClassPathUtils
-import com.netflix.nicobar.example.groovy2.ExampleResourceLocator
-import com.netflix.nicobar.groovy2.internal.compile.Groovy2Compiler
-import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
-import com.reversemind.nicobar.container.ContainerModuleLoader
-import org.apache.commons.lang3.StringUtils
-import org.apache.tools.ant.BuildException
-import org.apache.tools.ant.Project
-import org.apache.tools.ant.taskdefs.Jar
+import com.netflix.nicobar.core.archive.GsonScriptModuleSpecSerializer;
+import com.netflix.nicobar.core.archive.ModuleId;
+import com.netflix.nicobar.core.archive.PathScriptArchive;
+import com.netflix.nicobar.core.archive.ScriptArchive;
+import com.netflix.nicobar.core.archive.ScriptModuleSpec;
+import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer;
+import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin;
+import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec;
+import com.netflix.nicobar.core.utils.ClassPathUtils;
+import com.netflix.nicobar.example.groovy2.ExampleResourceLocator;
+import com.netflix.nicobar.groovy2.internal.compile.Groovy2Compiler;
+import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin;
+import com.reversemind.nicobar.container.ContainerModuleLoader;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.Jar;
+import org.jboss.modules.ModuleLoadException;
 
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+
+import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 
 /**
  *
@@ -32,7 +47,7 @@ public class ContainerUtils {
     // .addRuntimeResource(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
 
     public
-    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder(Set<Path> externalLibs) throws Exception {
+    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder(Set<Path> externalLibs){
 
         ScriptCompilerPluginSpec groovy2CompilerPluginSpec = buildGroovy2CompilerPluginSpec(externalLibs);
         ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec(externalLibs);
@@ -43,7 +58,7 @@ public class ContainerUtils {
                 .addPluginSpec(byteCodeCompilerPluginSpec);
     }
 
-    public static ContainerModuleLoader createContainerModuleLoader(Set<Path> externalLibs) throws Exception {
+    public static ContainerModuleLoader createContainerModuleLoader(Set<Path> externalLibs) throws IOException, ModuleLoadException {
 
         ScriptCompilerPluginSpec groovy2CompilerPluginSpec = buildGroovy2CompilerPluginSpec(externalLibs);
         ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec(externalLibs);
@@ -183,4 +198,92 @@ public class ContainerUtils {
     private static Path getCoberturaJar(ClassLoader classLoader) {
         return ClassPathUtils.findRootPathForResource("net/sourceforge/cobertura/coveragedata/HasBeenInstrumented.class", classLoader);
     }
+
+    public static ScriptArchive getScriptArchiveAtPath(Path basePath, ModuleId moduleId) throws IOException {
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
+                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
+                .build();
+
+        ScriptArchive scriptArchive = new PathScriptArchive.Builder(getModulePath(basePath, moduleId).toAbsolutePath())
+                .setRecurseRoot(true)
+                .setModuleSpec(moduleSpec)
+                .build();
+
+        return scriptArchive;
+    }
+
+    public static Path getModulePath(Path basePath, ModuleId moduleId) {
+        if (!basePath.isAbsolute()) {
+            throw new IllegalArgumentException("Base path should be absolute");
+        }
+        return basePath.resolve(moduleId.toString());
+    }
+
+    /**
+     * Find all valid names of directories at basePath for ModuleId
+     *
+     * @param basePath
+     * @return
+     */
+    public static Set<ModuleId> getModuleIdListAtPath(Path basePath) throws IOException {
+
+        final int maxDepth = 1;
+
+        final Set<String> directories = new HashSet<String>();
+
+        Files.walkFileTree(basePath,
+                EnumSet.of(FOLLOW_LINKS),
+                maxDepth,
+                new SimpleFileVisitor<Path>() {
+
+                    private void addPath(Path directoryPath) {
+                        if (directoryPath != null && directoryPath.toFile().isDirectory()) {
+                            int index = directoryPath.getNameCount();
+                            if (index > 0) {
+                                Path name = directoryPath.getName(index - 1);
+                                directories.add(name.toString());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException {
+                        this.addPath(filePath);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                            throws IOException {
+                        this.addPath(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                }
+        );
+
+        if (!directories.isEmpty()) {
+
+            Set<ModuleId> moduleIds = new HashSet<ModuleId>();
+
+            for (String name : directories) {
+                ModuleId _moduleId = null;
+                try {
+                    _moduleId = ModuleId.fromString(name);
+                } catch (RuntimeException ex) {
+                    ex.printStackTrace();
+                }
+
+                if (_moduleId != null) {
+                    moduleIds.add(_moduleId);
+                }
+            }
+
+            return moduleIds;
+        }
+
+        return new HashSet<ModuleId>();
+    }
+
 }
