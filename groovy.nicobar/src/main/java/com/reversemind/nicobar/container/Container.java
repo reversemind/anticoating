@@ -8,6 +8,7 @@ import com.reversemind.nicobar.container.utils.ContainerUtils;
 import com.reversemind.nicobar.container.watcher.PathWatcher;
 import groovy.lang.Binding;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.modules.ModuleLoadException;
 
 import java.io.IOException;
@@ -174,6 +175,14 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
+    public Class findClass(ModuleId moduleId, String canonicalClassName) {
+        final ScriptModule scriptModule = getModuleLoader().getScriptModule(moduleId);
+        if (scriptModule != null && StringUtils.isNotBlank(canonicalClassName)) {
+            return ScriptModuleUtils.findClass(scriptModule, canonicalClassName);
+        }
+        return null;
+    }
+
     protected ContainerModuleLoader getModuleLoader() {
         if (moduleLoader == null) {
             throw new IllegalStateException("Cannot get ContainerModuleLoader 'cause Container instance was not correctly initialized");
@@ -202,8 +211,11 @@ public class Container implements IContainerListener {
             libsPath = builder.getLibsPath();
             innerBuilder = builder;
 
+            long watchPeriod = builder.getWatchPeriod() <= 0 ? 100 : builder.getWatchPeriod();
+            long notifyPeriod = builder.getNotifyPeriod() <= 0 ? 5000 : builder.getNotifyPeriod();
+
             // TODO move parameters of watcher into Container.Builder
-            pathWatcher = new PathWatcher(this, 100, 5000).start();
+            pathWatcher = new PathWatcher(this, watchPeriod, notifyPeriod).start();
         }
     }
 
@@ -229,6 +241,8 @@ public class Container implements IContainerListener {
         private Path classesPath;
         private Path libsPath;
         private Set<Path> runtimeJarLibs = new HashSet<Path>();
+        private long watchPeriod;
+        private long notifyPeriod;
 
         public Builder(Path srcPath, Path classesPath, Path libsPath) {
             if (!srcPath.isAbsolute()) {
@@ -275,6 +289,24 @@ public class Container implements IContainerListener {
 
         public Builder setModuleLoader(ContainerModuleLoader moduleLoader) {
             this.moduleLoader = moduleLoader;
+            return this;
+        }
+
+        private long getWatchPeriod() {
+            return watchPeriod;
+        }
+
+        public Builder setWatchPeriod(long watchPeriod) {
+            this.watchPeriod = watchPeriod;
+            return this;
+        }
+
+        private long getNotifyPeriod() {
+            return notifyPeriod;
+        }
+
+        public Builder setNotifyPeriod(long notifyPeriod) {
+            this.notifyPeriod = notifyPeriod;
             return this;
         }
 

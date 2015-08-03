@@ -1,1 +1,6 @@
-{"moduleId":"moduleName.moduleVersion","archiveMetadata":{},"moduleDependencies":[],"compilerPluginIds":["bytecode"]}
+{
+  "moduleId": "moduleName.moduleVersion",
+  "archiveMetadata": {},
+  "moduleDependencies": [],
+  "compilerPluginIds": ["bytecode"]
+}
