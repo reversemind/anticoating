@@ -59,4 +59,41 @@ class ContainerTest extends Specification {
         then:
         log.info "then:"
     }
+
+    def 'auto rebuild scripts and reload'(){
+        setup:
+        log.info "setup:"
+
+        final String BASE_PATH = "src/test/resources/base-path/modules";
+
+        Path srcPath = Paths.get(BASE_PATH, "src").toAbsolutePath();
+        Path classesPath = Paths.get(BASE_PATH, "classes").toAbsolutePath();
+        Path libPath = Paths.get(BASE_PATH, "libs").toAbsolutePath();
+
+        Set<Path> runtimeJars = new HashSet<>();
+        runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
+
+
+        when:
+        log.info "when:"
+
+        new Container.Builder(srcPath, classesPath, libPath)
+                .setRuntimeJarLibs(runtimeJars)
+                .build()
+
+        Container container = Container.getInstance();
+
+        ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
+
+        container.addModule(moduleId, true)
+
+
+        10000.times(){
+            container.executeScript(moduleId, "com.company.script")
+            Thread.sleep(2000);
+        }
+
+        then:
+        log.info "then:"
+    }
 }

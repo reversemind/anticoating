@@ -3,9 +3,9 @@ package com.reversemind.nicobar.container;
 import com.netflix.nicobar.core.archive.ModuleId;
 import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.module.ScriptModule;
-import com.netflix.nicobar.core.module.ScriptModuleLoader;
 import com.netflix.nicobar.core.module.ScriptModuleUtils;
 import com.reversemind.nicobar.container.utils.ContainerUtils;
+import com.reversemind.nicobar.container.watcher.PathWatcher;
 import groovy.lang.Binding;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.modules.ModuleLoadException;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 @Slf4j
-public class Container {
+public class Container implements IContainerListener{
 
     private static Container container;
 
@@ -52,9 +52,10 @@ public class Container {
                 ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
                 getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
 
-                if (isSynchronize) {
-//                    Path modulePath = new ModuleBuilder(moduleId, baseDirectory).getModuleSrcPath()
-//                    new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
+//                if (isSynchronize) {
+                if (true) {
+                    Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
+                    new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
                 }
             }
         }
@@ -72,16 +73,47 @@ public class Container {
                         scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId));
 
                         // isSynchronize
-                        if (moduleIdMap.get(moduleId)) {
-//                    Path modulePath = new ModuleBuilder(moduleId, baseDirectory).getModuleSrcPath()
-//                    new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
-                        }
+//                        if (moduleIdMap.get(moduleId)) {
+                            Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
+                            new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
+//                        }
                     }
                 }
             }
 
-            // build from source to classes directory
-            getModuleLoader().updateScriptArchives(scriptArchiveSet);
+            if(!scriptArchiveSet.isEmpty()){
+                // build from source to classes directory
+                getModuleLoader().updateScriptArchives(scriptArchiveSet);
+            }
+
+        }
+
+        return getInstance();
+    }
+
+    public Container addModules(final Set<ModuleId> moduleIdSet) throws IOException {
+        if (moduleIdSet != null && !moduleIdSet.isEmpty()) {
+
+            LinkedHashSet<ScriptArchive> scriptArchiveSet = new LinkedHashSet<ScriptArchive>();
+            for (ModuleId moduleId : moduleIdSet) {
+                if (moduleId != null) {
+                    scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId));
+                    if (!moduleMap.containsKey(moduleId)) {
+                        moduleMap.put(moduleId, true);
+                        // isSynchronize
+//                        if (moduleId != null) {
+                            Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
+                            new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
+//                        }
+                    }
+                }
+            }
+
+            if(!scriptArchiveSet.isEmpty()){
+                // build from source to classes directory
+                getModuleLoader().updateScriptArchives(scriptArchiveSet);
+            }
+
         }
 
         return getInstance();
@@ -170,6 +202,22 @@ public class Container {
             libsPath = builder.getLibsPath();
             innerBuilder = builder;
         }
+    }
+
+    @Override
+    public void changed(final Set<ModuleId> moduleIdSet) {
+        // TODO what about async - for changed caller
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    addModules(moduleIdSet);
+                } catch (IOException e) {
+                    // TODO temp solution
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
     public static class Builder {
