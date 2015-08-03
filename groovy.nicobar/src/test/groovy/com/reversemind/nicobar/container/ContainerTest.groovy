@@ -88,7 +88,7 @@ class ContainerTest extends Specification {
         container.addModule(moduleId, true)
 
 
-        10000.times(){
+        10.times(){
             container.executeScript(moduleId, "com.company.script")
             Thread.sleep(2000);
         }

@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 @Slf4j
-public class Container implements IContainerListener{
+public class Container implements IContainerListener {
 
     private static Container container;
 
@@ -31,6 +31,8 @@ public class Container implements IContainerListener{
     private static Path libsPath;
 
     private static ConcurrentHashMap<ModuleId, Boolean> moduleMap = new ConcurrentHashMap<ModuleId, Boolean>();
+
+    private PathWatcher pathWatcher;
 
     private Container(Builder builder) throws IOException, ModuleLoadException {
         this.build(builder);
@@ -52,10 +54,9 @@ public class Container implements IContainerListener{
                 ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
                 getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
 
-//                if (isSynchronize) {
-                if (true) {
+                if (isSynchronize) {
                     Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
-                    new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
+                    pathWatcher.register(moduleId, modulePath, true);
                 }
             }
         }
@@ -73,15 +74,15 @@ public class Container implements IContainerListener{
                         scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId));
 
                         // isSynchronize
-//                        if (moduleIdMap.get(moduleId)) {
+                        if (moduleMap.get(moduleId)) {
                             Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
-                            new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
-//                        }
+                            pathWatcher.register(moduleId, modulePath, true);
+                        }
                     }
                 }
             }
 
-            if(!scriptArchiveSet.isEmpty()){
+            if (!scriptArchiveSet.isEmpty()) {
                 // build from source to classes directory
                 getModuleLoader().updateScriptArchives(scriptArchiveSet);
             }
@@ -91,7 +92,7 @@ public class Container implements IContainerListener{
         return getInstance();
     }
 
-    public Container addModules(final Set<ModuleId> moduleIdSet) throws IOException {
+    public Container addModules(final Set<ModuleId> moduleIdSet, boolean isSynchronized) throws IOException {
         if (moduleIdSet != null && !moduleIdSet.isEmpty()) {
 
             LinkedHashSet<ScriptArchive> scriptArchiveSet = new LinkedHashSet<ScriptArchive>();
@@ -100,16 +101,16 @@ public class Container implements IContainerListener{
                     scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId));
                     if (!moduleMap.containsKey(moduleId)) {
                         moduleMap.put(moduleId, true);
-                        // isSynchronize
-//                        if (moduleId != null) {
+
+                        if (isSynchronized) {
                             Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
-                            new PathWatcher(moduleId, this, modulePath, true, 100, 5000).processEvents();
-//                        }
+                            pathWatcher.register(moduleId, modulePath);
+                        }
                     }
                 }
             }
 
-            if(!scriptArchiveSet.isEmpty()){
+            if (!scriptArchiveSet.isEmpty()) {
                 // build from source to classes directory
                 getModuleLoader().updateScriptArchives(scriptArchiveSet);
             }
@@ -120,7 +121,6 @@ public class Container implements IContainerListener{
     }
 
     /**
-     *
      * @param isLoadCompiledFirst - is try to load from compiled classes of from src
      * @return
      * @throws IOException
@@ -201,6 +201,9 @@ public class Container implements IContainerListener{
             classesPath = builder.getClassesPath();
             libsPath = builder.getLibsPath();
             innerBuilder = builder;
+
+            // TODO move parameters of watcher into Container.Builder
+            pathWatcher = new PathWatcher(this, 100, 5000).start();
         }
     }
 
@@ -211,7 +214,7 @@ public class Container implements IContainerListener{
             @Override
             public void run() {
                 try {
-                    addModules(moduleIdSet);
+                    addModules(moduleIdSet, true);
                 } catch (IOException e) {
                     // TODO temp solution
                     e.printStackTrace();
