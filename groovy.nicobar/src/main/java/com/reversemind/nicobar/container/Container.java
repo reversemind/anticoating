@@ -2,8 +2,11 @@ package com.reversemind.nicobar.container;
 
 import com.netflix.nicobar.core.archive.ModuleId;
 import com.netflix.nicobar.core.archive.ScriptArchive;
+import com.netflix.nicobar.core.archive.ScriptModuleSpec;
 import com.netflix.nicobar.core.module.ScriptModule;
 import com.netflix.nicobar.core.module.ScriptModuleUtils;
+import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin;
+import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin;
 import com.reversemind.nicobar.container.utils.ContainerUtils;
 import com.reversemind.nicobar.container.watcher.PathWatcher;
 import groovy.lang.Binding;
@@ -54,6 +57,33 @@ public class Container implements IContainerListener {
                 // build from source to classes directory
                 ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
                 getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
+
+                if (isSynchronize) {
+                    Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
+                    pathWatcher.register(moduleId, modulePath, true);
+                }
+            }
+        }
+        return getInstance();
+    }
+
+    public Container addExtraModule(final ModuleId moduleId, boolean isSynchronize) throws IOException {
+        if (moduleId != null) {
+            if (!moduleMap.containsKey(moduleId)) {
+                moduleMap.put(moduleId, isSynchronize);
+
+
+                ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
+                        .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                        .addCompilerPluginId(Groovy2MultiCompilerPlugin.PLUGIN_ID)
+                        .build();
+
+                MixScriptArchive mixScriptArchive = new MixScriptArchive(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath(), true);
+                mixScriptArchive.setModuleSpec(moduleSpec);
+
+                // build from source to classes directory
+//                ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
+                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(mixScriptArchive)));
 
                 if (isSynchronize) {
                     Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();

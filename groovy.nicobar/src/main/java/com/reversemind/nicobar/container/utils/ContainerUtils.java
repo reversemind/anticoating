@@ -13,6 +13,8 @@ import com.netflix.nicobar.example.groovy2.ExampleResourceLocator;
 import com.netflix.nicobar.groovy2.internal.compile.Groovy2Compiler;
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin;
 import com.reversemind.nicobar.container.ContainerModuleLoader;
+import com.reversemind.nicobar.container.Groovy2MultiCompiler;
+import com.reversemind.nicobar.container.Groovy2MultiCompilerPlugin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -41,6 +43,47 @@ public class ContainerUtils {
 
     private final
     static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
+
+    public
+    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder2(Set<Path> externalLibs){
+
+        ScriptCompilerPluginSpec.Builder builder = new ScriptCompilerPluginSpec.Builder(Groovy2MultiCompiler.GROOVY2_COMPILER_ID)
+                .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
+                .addRuntimeResource(getGroovyMultiPluginLocation(ExampleResourceLocator.class.getClassLoader()))
+                .addRuntimeResource(getByteCodeLoadingPluginPath())
+
+                        // hack to make the gradle build work. still doesn't seem to properly instrument the code
+                        // should probably add a classloader dependency on the system classloader instead
+                .addRuntimeResource(getCoberturaJar(ContainerUtils.class.getClassLoader()))
+                .withPluginClassName(Groovy2MultiCompilerPlugin.class.getName());
+
+        // in version higher 0.2.6 of Nicobar should be added some useful methods, but now needs to iterate
+        // add run time .jar libs
+        if (!externalLibs.isEmpty()) {
+            for (Path path : externalLibs) {
+                builder.addRuntimeResource(path.toAbsolutePath());
+            }
+        }
+
+
+        ScriptCompilerPluginSpec groovy2CompilerPluginSpec = builder.build();
+        ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec(externalLibs);
+
+        // create and start the builder with the plugin
+        return new ContainerModuleLoader.Builder()
+                .addPluginSpec(groovy2CompilerPluginSpec)
+                .addPluginSpec(byteCodeCompilerPluginSpec);
+    }
+
+    public static Path getGroovyMultiPluginLocation(ClassLoader classLoader) {
+        String resourceName = ClassPathUtils.classNameToResourceName("com.reversemind.nicobar.container.Groovy2MultiCompiler");
+        Path path = ClassPathUtils.findRootPathForResource(resourceName, classLoader);
+        if (path == null) {
+            throw new IllegalStateException("coudln't find groovy2 plugin jar in the classpath.");
+        }
+        return path;
+    }
+
 
     //
     // spock-core-0.7-groovy-2.0.jar needs to run inside Spock tests

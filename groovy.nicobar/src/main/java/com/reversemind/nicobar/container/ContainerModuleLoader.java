@@ -7,6 +7,7 @@ import com.netflix.nicobar.core.module.*;
 import com.netflix.nicobar.core.module.jboss.JBossModuleUtils;
 import com.netflix.nicobar.core.module.jboss.JBossScriptModule;
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec;
+import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
@@ -200,9 +201,10 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
                             throw new ScriptCompilationException("Unable to load compiled class: " + loadClass);
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     // rollback
 //                    log.error("Exception loading module " + candidateRevisionId, e);
-                    System.out.println("Exception loading module " + candidateRevisionId + e);
+                    System.out.println("Exception loading module " + candidateRevisionId + " " + e);
                     if (candidateArchives.contains(scriptArchive)) {
                         // this spec came from a candidate archive. Send reject notification
                         notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.COMPILE_FAILURE, e);
