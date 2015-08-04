@@ -7,11 +7,11 @@ import spock.lang.Specification
 
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.text.SimpleDateFormat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-
 
 /**
  *
@@ -132,7 +132,7 @@ class ContainerTest extends Specification {
         log.info "then:"
     }
 
-    def 'auto rebuild scripts and reload multithreaded'() {
+    def 'auto rebuild scripts and reload multithreaded invoke method for class'() {
         setup:
         log.info "setup:"
 
@@ -171,29 +171,24 @@ class ContainerTest extends Specification {
 
                 changeByString("return \"ScriptHelper2|\" + string", "return \"!!! CHANGED !!!|\" + string")
 
-                Thread.sleep(500);
+                Thread.sleep(1500);
 
                 backToInitialState();
 
-                Thread.sleep(500);
+                Thread.sleep(1500);
             }
-        }, 3, 2, TimeUnit.SECONDS);
+        }, 1, 3, TimeUnit.SECONDS);
 
-        100.times { idx ->
-            println "index:${idx}"
+        2000.times { idx ->
             containerCaller.execute(new ContainerPusher(container, moduleId, idx));
+            Thread.sleep(10);
         }
-
-
-        Thread.sleep(10000);
 
         containerCaller.shutdown()
-        while (!containerCaller.isShutdown()) {
-            println "Still running"
-            Thread.sleep(1000);
-        }
+        containerCaller.awaitTermination(5, TimeUnit.SECONDS);
 
-
+        scheduledThreadPool.shutdown();
+        scheduledThreadPool.awaitTermination(5, TimeUnit.SECONDS);
 
         then:
         log.info "then:"
@@ -201,6 +196,9 @@ class ContainerTest extends Specification {
     }
 
     public class ContainerPusher implements Runnable {
+
+        private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+
         private Container container;
         private ModuleId moduleId;
         private long index;
@@ -215,7 +213,8 @@ class ContainerTest extends Specification {
         public void run() {
             Class clazz = this.container.findClass(this.moduleId, "com.company.ScriptHelper2");
             Object object = clazz.newInstance()
-            String threadName = "index:" + index + "|" + Thread.currentThread().getName();
+            Date date = new Date();
+            String threadName = "index:" + index + "|" + Thread.currentThread().getName() + "|time:" + dateFormat.format(date) + "/stamp:" + date.getTime();
             String result = (String) object.invokeMethod("getResponse", [threadName])
             println "result:" + result
             Thread.sleep(100);
