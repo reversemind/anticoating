@@ -35,14 +35,15 @@ public class MixScriptArchive implements ScriptArchive {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
-                    if(file.toFile().getName().endsWith(".jar")){
-                        Set<String> _set = getEntriesFromJar(file);
-                        if(!_set.isEmpty()){
-                            for(String _str: _set){
-                                buildEntries.add(_str);
-                            }
-                        }
-                    }else{
+//                    if(file.toFile().getName().endsWith(".jar")){
+//                        Set<String> _set = getEntriesFromJar(file);
+//                        if(!_set.isEmpty()){
+//                            for(String _str: _set){
+//                                buildEntries.add(_str);
+//                            }
+//                        }
+//                    } else
+                    {
                         Path relativePath = rootDirPath.relativize(file);
                         buildEntries.add(relativePath.toString());
                     }
@@ -54,7 +55,6 @@ public class MixScriptArchive implements ScriptArchive {
 
         entryNames = Collections.unmodifiableSet(buildEntries);
     }
-
 
     private Set<String> getEntriesFromJar(Path jarPath) throws IOException {
         // initialize the index
@@ -69,7 +69,8 @@ public class MixScriptArchive implements ScriptArchive {
                 if (!jarEntry.isDirectory()) {
                     if(jarEntry.getName().endsWith(".class")){
                         // add it as a URL like name
-                        indexBuilder.add(jarPath.toFile().getName() + "!/" + jarEntry.getName().replaceAll("/","."));
+                        indexBuilder.add(jarPath.toFile().getName() + "!/" + jarEntry.getName().replaceAll("/", "."));
+//                        indexBuilder.add(jarEntry.getName());//.replaceAll("/","."));
                     }
                 }
             }
