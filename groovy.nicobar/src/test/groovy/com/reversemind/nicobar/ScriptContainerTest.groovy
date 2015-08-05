@@ -150,7 +150,6 @@ class ScriptContainerTest extends Specification {
         ObjectMapper mapper = new ObjectMapper();
         println "json:" + mapper.writeValueAsString(scriptModuleSpec);
 
-        scriptModuleSpec = new ScriptModuleSpec();
     }
 
     def 'load module ids from path'(){

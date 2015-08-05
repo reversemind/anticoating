@@ -7,7 +7,7 @@ import com.netflix.nicobar.core.module.*;
 import com.netflix.nicobar.core.module.jboss.JBossModuleUtils;
 import com.netflix.nicobar.core.module.jboss.JBossScriptModule;
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec;
-import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.slf4j.Slf4j;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
 import org.jboss.modules.ModuleLoadException;
@@ -23,7 +23,7 @@ import java.util.*;
 /**
  *
  */
-@Slf4j
+//@Slf4j
 public class ScriptContainerModuleLoader extends ScriptModuleLoader {
 
     public static class Builder {
