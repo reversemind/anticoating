@@ -59,7 +59,7 @@ public class MixScriptArchive implements ScriptArchive {
     private Set<String> getEntriesFromJar(Path jarPath) throws IOException {
         // initialize the index
         JarFile jarFile = new JarFile(jarPath.toFile());
-        Set<String> indexBuilder = new HashSet<>();
+        Set<String> indexBuilder = new HashSet<String>();
         try {
             Enumeration<JarEntry> jarEntries = jarFile.entries();
             indexBuilder = new HashSet<String>();

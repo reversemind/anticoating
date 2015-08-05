@@ -6,8 +6,6 @@ import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.archive.ScriptModuleSpec;
 import com.netflix.nicobar.core.module.ScriptModule;
 import com.netflix.nicobar.core.module.ScriptModuleUtils;
-import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin;
-import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin;
 import com.reversemind.nicobar.container.plugin.BytecodeMultiLoadingPlugin;
 import com.reversemind.nicobar.container.utils.ContainerUtils;
 import com.reversemind.nicobar.container.watcher.PathWatcher;
@@ -166,7 +164,7 @@ public class Container implements IContainerListener {
         Set<ModuleId> moduleIds = ContainerUtils.getModuleIdListAtPath(processPath);
 
         if (!moduleIds.isEmpty()) {
-            Map<ModuleId, Boolean> moduleIdMap = new HashMap<>();
+            Map<ModuleId, Boolean> moduleIdMap = new HashMap<ModuleId, Boolean>();
             for (ModuleId moduleId : moduleIds) {
                 moduleIdMap.put(moduleId, true);
             }
@@ -185,7 +183,8 @@ public class Container implements IContainerListener {
                 try {
                     GroovyScriptInvokerHelper.runGroovyScript(clazz);
                 } catch (Exception ex) {
-                    log.error("Unable to execute script ${scriptName} for module:${moduleId}", ex);
+                    ex.printStackTrace();
+//                    log.error("Unable to execute script ${scriptName} for module:${moduleId}", ex);
                 }
             }
         }
@@ -200,7 +199,8 @@ public class Container implements IContainerListener {
                 try {
                     GroovyScriptInvokerHelper.runGroovyScript(clazz, binding);
                 } catch (Exception ex) {
-                    log.error("Unable to execute script ${scriptName} for module:${moduleId} with binding:${binding}", ex);
+                    ex.printStackTrace();
+//                    log.error("Unable to execute script ${scriptName} for module:${moduleId} with binding:${binding}", ex);
                 }
             }
         }

@@ -4,21 +4,17 @@ import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.compile.ScriptArchiveCompiler;
 import com.netflix.nicobar.core.compile.ScriptCompilationException;
 import com.netflix.nicobar.core.module.jboss.JBossModuleClassLoader;
-import org.apache.commons.lang3.StringUtils;
+import com.reversemind.nicobar.container.utils.ContainerUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -55,26 +51,15 @@ public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
 
             if(entry.endsWith(".class")){
                 // Load from the underlying archive class resource
-
                 String entryName = entry.replace(".class", "").replace("/", ".");
                 try {
-
-                    Path sourceBasePath = Paths.get(archive.getRootUrl().toURI()).toAbsolutePath();
-                    Path pathToClass = sourceBasePath.resolve(entry);
-
-
+                    Path pathToClass = Paths.get(archive.getRootUrl().toURI()).toAbsolutePath().resolve(entry);
                     Class<?> addedClass = moduleClassLoader.loadClassLocal(entryName, true);
                     addedClasses.add(addedClass);
-
-
-                    Path p = copyClassRelativelyAt(targetDir, pathToClass, addedClass.getCanonicalName(), "OtherScript");
-
+                    copyClassRelativelyAt(targetDir, pathToClass, addedClass.getCanonicalName(), addedClass.getSimpleName());
                 } catch (Exception e) {
-                    throw new ScriptCompilationException("Unable to load class: " + entryName, e);
+                    throw new ScriptCompilationException("Unable to load and copy class: " + entryName, e);
                 }
-
-
-
             } else {
 
                 try {
@@ -82,90 +67,33 @@ public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
                     String _path = Paths.get(archive.getRootUrl().toURI()).toAbsolutePath().toString();
                     Path path = Paths.get(_path, jarFile);
 
-                    Set<String> _set = getEntriesFromJar(path);
+                    Set<String> _set = getClassNamesFromJar(path);
                     System.out.println("set:" + _set);
 
                     for(String className: _set){
-                        Class<?> addedClass = moduleClassLoader.loadClassLocal(className.replace(".class", ""), true);
+//                        Class<?> addedClass = moduleClassLoader.loadClassLocal(className.replace(".class", ""), true);
 //                        addedClasses.add(addedClass);
                     }
+
+                    ContainerUtils.unJar(path.toFile(), targetDir.resolve(jarFile).toFile(), true);
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
             }
 
             moduleClassLoader.addClasses(addedClasses);
-
-
 
             // TODO copy all entryNames into targetDir
             if(targetDir != null){
 //                Path sourcePath
 //                Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }
-//
-//            // jar:file://opt/dev/github/reversemind/anticoating/groovy.nicobar/src/test/resources/base-path-build-module-src-plus-jar/src/moduleName.moduleVersion/external.v1.jar!/com.company2.packageother.OtherHelper.class
-////            if(entry.contains(JAR_ARCHIVE_SEPARATOR)){
-////                continue;
-////            }
-//
-//            String entryName = entry;
-//            // in case of MultiScriptArchive
-//            if(entry.contains(JAR_ARCHIVE_SEPARATOR)){
-//                //entryName = entry.substring(entry.indexOf(JAR_ARCHIVE_SEPARATOR) + JAR_ARCHIVE_SEPARATOR.length(), entry.length());
-////                entryName = "jar:file://opt/dev/github/reversemind/anticoating/groovy.nicobar/src/test/resources/base-path-build-module-src-plus-jar/src/moduleName.moduleVersion/external.v1.jar!/com.company2.packageother.OtherHelper.class";
-//                entryName = "com.company2.packageother.OtherHelper";
-//
-//
-//
-//                System.out.println("\n\n!!!!!!!!!!!!!!!!!!!!!!!!\n\n" + entry);
-//
-//
-//                entryName = entryName.replace(".class", "").replace("/", ".");
-//
-//                try {
-//                    Class<?> addedClass = moduleClassLoader.loadClassLocal(entryName, true);
-//                    addedClasses.add(addedClass);
-//                } catch (Exception e) {
-//                    throw new ScriptCompilationException("Unable to load class: " + entryName, e);
-//                }
-//                moduleClassLoader.addClasses(addedClasses);
-//
-////                try {
-////                    byte[] bytes = getBytesOfClassFromJar(entryName, Paths.get("/opt/dev/github/reversemind/anticoating/groovy.nicobar/src/test/resources/base-path-build-module-src-plus-jar/src/moduleName.moduleVersion/external.v1.jar"));
-////                    if(bytes != null){
-//////                        Class<?> addedClass = moduleClassLoader.addClassBytes(entryName, bytes);
-//////                        addedClasses.add(addedClass);
-//////                        moduleClassLoader.addClasses(addedClasses);
-////                    }
-////
-////                } catch (Exception e) {
-////                    e.printStackTrace();
-////                }
-//
-//            }else{
-//
-//                entryName = entryName.replace(".class", "").replace("/", ".");
-//
-//                try {
-//                    Class<?> addedClass = moduleClassLoader.loadClassLocal(entryName, true);
-//                    addedClasses.add(addedClass);
-//                } catch (Exception e) {
-//                    throw new ScriptCompilationException("Unable to load class: " + entryName, e);
-//                }
-//                moduleClassLoader.addClasses(addedClasses);
-//            }
-//            // Load from the underlying archive class resource
-
         }
 
 
         return Collections.unmodifiableSet(addedClasses);
     }
-
 
     /**
      *
@@ -223,10 +151,10 @@ public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
         return targetPackagesPath;
     }
 
-    private Set<String> getEntriesFromJar(Path jarPath) throws IOException {
+    private Set<String> getClassNamesFromJar(Path jarPath) throws IOException {
         // initialize the index
         JarFile jarFile = new JarFile(jarPath.toFile());
-        Set<String> indexBuilder = new HashSet<>();
+        Set<String> indexBuilder = new HashSet<String>();
         try {
             Enumeration<JarEntry> jarEntries = jarFile.entries();
             indexBuilder = new HashSet<String>();
@@ -238,6 +166,7 @@ public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
                         // add it as a URL like name
 //                        indexBuilder.add(jarPath.toFile().getName() + "!/" + jarEntry.getName().replaceAll("/", "."));
 //                        indexBuilder.add(jarEntry.getName());//.replaceAll("/","."));
+
                         indexBuilder.add(jarEntry.getName());
                     }
                 }
@@ -250,6 +179,27 @@ public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
 //        indexBuilder.add(jarPath.toFile().getName());
 
         return indexBuilder;
+    }
+
+    private Map<String, byte[]> getEntriesFromJar2(Path jarPath) throws IOException {
+        // initialize the index
+        JarFile jarFile = new JarFile(jarPath.toFile());
+        Map<String, byte[]> map = new HashMap<String, byte[]>();
+        try {
+            Enumeration<JarEntry> jarEntries = jarFile.entries();
+            while (jarEntries.hasMoreElements()) {
+                JarEntry jarEntry = jarEntries.nextElement();
+
+                if (!jarEntry.isDirectory()) {
+                    if (jarEntry.getName().endsWith(".class")) {
+                        map.put(jarEntry.getName(), jarEntry.getExtra());
+                    }
+                }
+            }
+        } finally {
+            jarFile.close();
+        }
+        return map;
     }
 
     private byte[] getBytesOfClassFromJar(String canonicalClassName, Path pathToJarFile) throws IOException, ClassNotFoundException {
