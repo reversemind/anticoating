@@ -79,6 +79,9 @@ public class Groovy2MultiCompiler  implements ScriptArchiveCompiler {
         }
 
         CompilerConfiguration config = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
+        config.getScriptExtensions().add("class");
+        config.getScriptExtensions().add("jar");
+
         config.addCompilationCustomizers(customizers.toArray(new CompilationCustomizer[0]));
 
         new Groovy2MultiCompilerHelper(compilationRootDir)

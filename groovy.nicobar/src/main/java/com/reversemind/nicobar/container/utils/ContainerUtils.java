@@ -1,11 +1,6 @@
 package com.reversemind.nicobar.container.utils;
 
-import com.netflix.nicobar.core.archive.GsonScriptModuleSpecSerializer;
-import com.netflix.nicobar.core.archive.ModuleId;
-import com.netflix.nicobar.core.archive.PathScriptArchive;
-import com.netflix.nicobar.core.archive.ScriptArchive;
-import com.netflix.nicobar.core.archive.ScriptModuleSpec;
-import com.netflix.nicobar.core.archive.ScriptModuleSpecSerializer;
+import com.netflix.nicobar.core.archive.*;
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin;
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec;
 import com.netflix.nicobar.core.utils.ClassPathUtils;
@@ -15,20 +10,19 @@ import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin;
 import com.reversemind.nicobar.container.ContainerModuleLoader;
 import com.reversemind.nicobar.container.Groovy2MultiCompiler;
 import com.reversemind.nicobar.container.Groovy2MultiCompilerPlugin;
+import com.reversemind.nicobar.container.plugin.BytecodeMultiLoadingPlugin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.taskdefs.Expand;
 import org.apache.tools.ant.taskdefs.Jar;
 import org.jboss.modules.ModuleLoadException;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -45,12 +39,12 @@ public class ContainerUtils {
     static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
 
     public
-    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder2(Set<Path> externalLibs){
+    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder2(Set<Path> externalLibs) {
 
         ScriptCompilerPluginSpec.Builder builder = new ScriptCompilerPluginSpec.Builder(Groovy2MultiCompiler.GROOVY2_COMPILER_ID)
                 .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
                 .addRuntimeResource(getGroovyMultiPluginLocation(ExampleResourceLocator.class.getClassLoader()))
-                .addRuntimeResource(getByteCodeLoadingPluginPath())
+                .addRuntimeResource(getByteCodeLoadingPluginPathMulti())
 
                         // hack to make the gradle build work. still doesn't seem to properly instrument the code
                         // should probably add a classloader dependency on the system classloader instead
@@ -67,7 +61,7 @@ public class ContainerUtils {
 
 
         ScriptCompilerPluginSpec groovy2CompilerPluginSpec = builder.build();
-        ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec(externalLibs);
+        ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec2(externalLibs);
 
         // create and start the builder with the plugin
         return new ContainerModuleLoader.Builder()
@@ -90,7 +84,7 @@ public class ContainerUtils {
     // .addRuntimeResource(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
 
     public
-    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder(Set<Path> externalLibs){
+    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder(Set<Path> externalLibs) {
 
         ScriptCompilerPluginSpec groovy2CompilerPluginSpec = buildGroovy2CompilerPluginSpec(externalLibs);
         ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec(externalLibs);
@@ -117,8 +111,8 @@ public class ContainerUtils {
      * Pack compiled class into .jar
      *
      * @param compiledClassesPath - path to compiled classes
-     * @param pathToJar - where to put a packet .jar file - path should exis
-     * @param moduleId - will be taken to construct a file name for jar file
+     * @param pathToJar           - where to put a packet .jar file - path should exis
+     * @param moduleId            - will be taken to construct a file name for jar file
      * @throws IOException
      * @throws BuildException
      */
@@ -165,7 +159,7 @@ public class ContainerUtils {
 
     protected static ScriptModuleSpec getDefaultScriptModuleSpec(ModuleId moduleId) {
         return new ScriptModuleSpec.Builder(moduleId)
-                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID) // in this case we should not compile a content of jar file
+                .addCompilerPluginId(BytecodeMultiLoadingPlugin.PLUGIN_ID) // in this case we should not compile a content of jar file
                 .build();
     }
 
@@ -197,6 +191,29 @@ public class ContainerUtils {
         return builder.build();
     }
 
+    public static ScriptCompilerPluginSpec buildByteCodeCompilerPluginSpec2(Set<Path> runTimeResourcesJar) {
+
+        ScriptCompilerPluginSpec.Builder builder = new ScriptCompilerPluginSpec.Builder(BytecodeMultiLoadingPlugin.PLUGIN_ID)
+
+                .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
+                .addRuntimeResource(getGroovyMultiPluginLocation(ExampleResourceLocator.class.getClassLoader()))
+                .addRuntimeResource(getCoberturaJar(ContainerUtils.class.getClassLoader()))
+
+                .addRuntimeResource(getByteCodeLoadingPluginPathMulti())
+                .withPluginClassName(BytecodeMultiLoadingPlugin.class.getName());
+
+        // in version higher 0.2.6 of Nicobar should be added some useful methods, but now needs to iterate
+        // add run time .jar libs
+        if (!runTimeResourcesJar.isEmpty()) {
+            for (Path path : runTimeResourcesJar) {
+                builder.addRuntimeResource(path.toAbsolutePath());
+            }
+        }
+
+        return builder.build();
+    }
+
+
     /**
      * Groovy2 CompilerPluginSpec
      *
@@ -213,8 +230,8 @@ public class ContainerUtils {
                 .addRuntimeResource(ExampleResourceLocator.getGroovyPluginLocation())
                 .addRuntimeResource(getByteCodeLoadingPluginPath())
 
-        // hack to make the gradle build work. still doesn't seem to properly instrument the code
-        // should probably add a classloader dependency on the system classloader instead
+                        // hack to make the gradle build work. still doesn't seem to properly instrument the code
+                        // should probably add a classloader dependency on the system classloader instead
                 .addRuntimeResource(getCoberturaJar(ContainerUtils.class.getClassLoader()))
                 .withPluginClassName(Groovy2CompilerPlugin.class.getName());
 
@@ -234,6 +251,15 @@ public class ContainerUtils {
         Path path = ClassPathUtils.findRootPathForResource(resourceName, ContainerUtils.class.getClassLoader());
         if (path == null) {
             throw new IllegalStateException("coudln't find BytecodeLoadingPlugin plugin jar in the classpath.");
+        }
+        return path;
+    }
+
+    private static Path getByteCodeLoadingPluginPathMulti() {
+        String resourceName = ClassPathUtils.classNameToResourceName("com.reversemind.nicobar.container.plugin.BytecodeMultiLoadingPlugin");
+        Path path = ClassPathUtils.findRootPathForResource(resourceName, ContainerUtils.class.getClassLoader());
+        if (path == null) {
+            throw new IllegalStateException("coudln't find BytecodeMultiLoadingPlugin plugin jar in the classpath.");
         }
         return path;
     }
@@ -329,4 +355,12 @@ public class ContainerUtils {
         return new HashSet<ModuleId>();
     }
 
+    public static void unJar(File source, File target, boolean overwrite) throws BuildException {
+        Expand expand = new Expand();
+        expand.setProject(new Project());
+        expand.setDest(target);
+        expand.setSrc(source);
+        expand.setOverwrite(overwrite);
+        expand.execute();
+    }
 }

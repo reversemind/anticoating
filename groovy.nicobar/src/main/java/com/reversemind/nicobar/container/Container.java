@@ -1,12 +1,14 @@
 package com.reversemind.nicobar.container;
 
 import com.netflix.nicobar.core.archive.ModuleId;
+import com.netflix.nicobar.core.archive.PathScriptArchive;
 import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.archive.ScriptModuleSpec;
 import com.netflix.nicobar.core.module.ScriptModule;
 import com.netflix.nicobar.core.module.ScriptModuleUtils;
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin;
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin;
+import com.reversemind.nicobar.container.plugin.BytecodeMultiLoadingPlugin;
 import com.reversemind.nicobar.container.utils.ContainerUtils;
 import com.reversemind.nicobar.container.watcher.PathWatcher;
 import groovy.lang.Binding;
@@ -74,16 +76,16 @@ public class Container implements IContainerListener {
 
 
                 ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
-                        .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                        .addCompilerPluginId(BytecodeMultiLoadingPlugin.PLUGIN_ID)
                         .addCompilerPluginId(Groovy2MultiCompilerPlugin.PLUGIN_ID)
                         .build();
 
-                MixScriptArchive mixScriptArchive = new MixScriptArchive(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath(), true);
-                mixScriptArchive.setModuleSpec(moduleSpec);
+                PathScriptArchive pathScriptArchive = new PathScriptArchive.Builder(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath())
+                        .setModuleSpec(moduleSpec).build();
 
                 // build from source to classes directory
 //                ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
-                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(mixScriptArchive)));
+                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(pathScriptArchive)));
 
                 if (isSynchronize) {
                     Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
