@@ -3,23 +3,23 @@ package com.reversemind.nicobar.container.mix.compiler;
 import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.compile.ScriptArchiveCompiler;
 import com.netflix.nicobar.core.compile.ScriptCompilationException;
+import com.netflix.nicobar.core.internal.compile.BytecodeLoader;
 import com.netflix.nicobar.core.module.jboss.JBossModuleClassLoader;
 import com.reversemind.nicobar.container.utils.ContainerUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * // TODO - need to clean up & refactor it
+ * Mix - 'cause it is possible to put dependency of .jar & .class at level of .groovy scripts
+ * based on {@link BytecodeLoader} - added extraction to targetDir all dependent .class
  */
 public class MixBytecodeLoader implements ScriptArchiveCompiler {
 
@@ -61,36 +61,19 @@ public class MixBytecodeLoader implements ScriptArchiveCompiler {
                     throw new ScriptCompilationException("Unable to load and copy class: " + entryName, e);
                 }
             } else {
-
+                // unJar dependency .class into targetDir
                 try {
-                    String jarFile = entry;
-                    String _path = Paths.get(archive.getRootUrl().toURI()).toAbsolutePath().toString();
-                    Path path = Paths.get(_path, jarFile);
-
-                    Set<String> _set = getClassNamesFromJar(path);
-//                    System.out.println("set:" + _set);
-
-//                    for(String className: _set){
-//                        Class<?> addedClass = moduleClassLoader.loadClassLocal(className.replace(".class", ""), true);
-////                        addedClasses.add(addedClass);
-//                    }
-
-                    ContainerUtils.unJar(path.toFile(), targetDir.toFile(), true);
-
+                    Path pathForUnJar = Paths.get(
+                            Paths.get(archive.getRootUrl().toURI()).toAbsolutePath().toString(),
+                            entry);
+                    ContainerUtils.unJar(pathForUnJar.toFile(), targetDir.toFile(), true);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    // TODO logging
                 }
             }
-
             moduleClassLoader.addClasses(addedClasses);
-
-            // TODO copy all entryNames into targetDir
-            if(targetDir != null){
-//                Path sourcePath
-//                Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-            }
         }
-
 
         return Collections.unmodifiableSet(addedClasses);
     }
@@ -143,84 +126,10 @@ public class MixBytecodeLoader implements ScriptArchiveCompiler {
             return null;
         }
 
-        Paths.get(_classSubPath).subpath(0,Paths.get(_classSubPath).getNameCount()-1);
+        Paths.get(_classSubPath).subpath(0,Paths.get(_classSubPath).getNameCount() - 1);
 
         Path packagesPath = Paths.get(_classSubPath).subpath(0,Paths.get(_classSubPath).getNameCount()-1);
-        Path targetPackagesPath = Paths.get(targetPath.toString(), packagesPath.toString());
-
-        return targetPackagesPath;
-    }
-
-    private Set<String> getClassNamesFromJar(Path jarPath) throws IOException {
-        // initialize the index
-        JarFile jarFile = new JarFile(jarPath.toFile());
-        Set<String> indexBuilder = new HashSet<String>();
-        try {
-            Enumeration<JarEntry> jarEntries = jarFile.entries();
-            indexBuilder = new HashSet<String>();
-            while (jarEntries.hasMoreElements()) {
-                JarEntry jarEntry = jarEntries.nextElement();
-
-                if (!jarEntry.isDirectory()) {
-                    if(jarEntry.getName().endsWith(".class")){
-                        // add it as a URL like name
-//                        indexBuilder.add(jarPath.toFile().getName() + "!/" + jarEntry.getName().replaceAll("/", "."));
-//                        indexBuilder.add(jarEntry.getName());//.replaceAll("/","."));
-
-                        indexBuilder.add(jarEntry.getName());
-                    }
-                }
-            }
-        } finally {
-            jarFile.close();
-        }
-
-//        Set<String> indexBuilder = new HashSet<>();
-//        indexBuilder.add(jarPath.toFile().getName());
-
-        return indexBuilder;
-    }
-
-    private Map<String, byte[]> getEntriesFromJar2(Path jarPath) throws IOException {
-        // initialize the index
-        JarFile jarFile = new JarFile(jarPath.toFile());
-        Map<String, byte[]> map = new HashMap<String, byte[]>();
-        try {
-            Enumeration<JarEntry> jarEntries = jarFile.entries();
-            while (jarEntries.hasMoreElements()) {
-                JarEntry jarEntry = jarEntries.nextElement();
-
-                if (!jarEntry.isDirectory()) {
-                    if (jarEntry.getName().endsWith(".class")) {
-                        map.put(jarEntry.getName(), jarEntry.getExtra());
-                    }
-                }
-            }
-        } finally {
-            jarFile.close();
-        }
-        return map;
-    }
-
-    private byte[] getBytesOfClassFromJar(String canonicalClassName, Path pathToJarFile) throws IOException, ClassNotFoundException {
-        JarFile file = new JarFile(pathToJarFile.toString());
-        JarEntry entry = (JarEntry) file.getEntry(canonicalClassName.replace('.', '/') + ".class");
-
-        if (entry != null) {
-            InputStream input = file.getInputStream(entry);
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-            byte[] buffer = new byte[4096];
-            long count = 0L;
-
-            int n1;
-            for (boolean n = false; -1 != (n1 = input.read(buffer)); count += (long) n1) {
-                output.write(buffer, 0, n1);
-            }
-
-            return output.toByteArray();
-        }
-        return null;
+        return Paths.get(targetPath.toString(), packagesPath.toString());
     }
 
 }
