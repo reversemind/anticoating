@@ -96,7 +96,7 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    private Container updateModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
+    private Container loadCompiledModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
         Path path = isUseClassPath ? classesPath : srcPath;
 
         if (moduleIdMap != null && !moduleIdMap.isEmpty()) {
@@ -127,7 +127,7 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    public Container updateModules(boolean isUseClassPath, final Set<ModuleId> moduleIdSet, boolean isSynchronized) throws IOException {
+    public Container loadCompiledModules(boolean isUseClassPath, final Set<ModuleId> moduleIdSet, boolean isSynchronized) throws IOException {
         Path path = isUseClassPath ? classesPath : srcPath;
 
         if (moduleIdSet != null && !moduleIdSet.isEmpty()) {
@@ -174,7 +174,7 @@ public class Container implements IContainerListener {
             for (ModuleId moduleId : moduleIds) {
                 moduleIdMap.put(moduleId, true);
             }
-            updateModules(isLoadCompiledFirst, moduleIdMap);
+            loadCompiledModules(isLoadCompiledFirst, moduleIdMap);
         }
 
         return getInstance();
@@ -264,7 +264,7 @@ public class Container implements IContainerListener {
             @Override
             public void run() {
                 try {
-                    updateModules(false, moduleIdSet, true);
+                    loadCompiledModules(false, moduleIdSet, true);
                 } catch (IOException e) {
                     // TODO temp solution
                     e.printStackTrace();

@@ -1,19 +1,19 @@
-package com.reversemind.nicobar.container.watcher
+package com.reversemind.nicobar.container.watcher;
 
-import com.netflix.nicobar.core.archive.ModuleId
-import com.reversemind.nicobar.container.IContainerListener
-import groovy.util.logging.Slf4j
+import com.netflix.nicobar.core.archive.ModuleId;
+import com.reversemind.nicobar.container.IContainerListener;
 
-import java.nio.file.*
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.*
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static java.nio.file.StandardWatchEventKinds.*
+import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * Adaptation of a directory watcherService (or tree) for changes to files.
  */
-@Slf4j
 public class PathWatcher {
 
     private final WatchService watcherService;
@@ -21,7 +21,7 @@ public class PathWatcher {
     private boolean trace = false;
 
     private Map<Path, ModuleId> pathModuleIdMap;
-    private final Set<ModuleId> triggeredModules = new HashSet<>();
+    private final Set<ModuleId> triggeredModules = new HashSet<ModuleId>();
 
     private IContainerListener containerListener;
 
@@ -32,8 +32,8 @@ public class PathWatcher {
     private boolean isWatch = false;
     boolean isTriggered = false;
 
-    private long watchPeriod
-    private long notifyPeriod
+    private long watchPeriod;
+    private long notifyPeriod;
 
     public PathWatcher(IContainerListener containerListener,
                        long watchPeriod,
@@ -47,9 +47,6 @@ public class PathWatcher {
 
         this.watchPeriod = watchPeriod <= 0 ? 100 : watchPeriod;
         this.notifyPeriod = notifyPeriod <= 0 ? 5000 : notifyPeriod;
-
-        log.info "watchPeriod:${watchPeriod} ms";
-        log.info "notifyPeriod:${notifyPeriod} ms";
 
         // enable trace after initial registration
         this.trace = true;
@@ -101,15 +98,15 @@ public class PathWatcher {
             register(moduleId, baseDirectory);
         } else {
             Files.walkFileTree(baseDirectory, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attrs)
-                        throws IOException {
-                    register(moduleId, directory);
-                    return FileVisitResult.CONTINUE;
-                }
-            } as FileVisitor<? super Path>);
+                        @Override
+                        public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attrs)
+                                throws IOException {
+                            register(moduleId, directory);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    }
+            );
         }
-
         return this;
     }
 
@@ -133,7 +130,7 @@ public class PathWatcher {
 
                     Path directory = keys.get(key);
                     if (directory == null) {
-                        log.error "WatchKey ${key} not recognized";
+//                        log.error "WatchKey ${key} not recognized";
                         continue;
                     }
 
@@ -150,7 +147,8 @@ public class PathWatcher {
                         Path name = ev.context();
                         Path child = directory.resolve(name);
 
-                        log.info "${new Date().getTime()} | ${event.kind().name()} ${child}\n"
+//                        log.info "${new Date().getTime()} | ${event.kind().name()} ${child}\n";
+                        System.out.println(" " + new Date().getTime() + "|" + event.kind().name() + " " + child);
 
                         // TODO collapse a bunch of short events into single per predefinder period of time 100 ms
 
@@ -159,7 +157,7 @@ public class PathWatcher {
                         // TODO what about new elements?! - need to detect sub path inclusion
                         if (pathModuleIdMap.containsKey(directory)) {
                             synchronized (triggeredModules) {
-                                triggeredModules.add(pathModuleIdMap.get(directory))
+                                triggeredModules.add(pathModuleIdMap.get(directory));
                             }
                         }
 
@@ -202,7 +200,11 @@ public class PathWatcher {
                         }
                     }
 
-                    Thread.sleep(watchPeriod);
+                    try {
+                        Thread.sleep(watchPeriod);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -212,17 +214,17 @@ public class PathWatcher {
         @Override
         public void run() {
             if (isTriggered) {
-                log.debug "\n\n////////////////////////////////////////\n" + Thread.currentThread().getName() + " Start. Time = " + new Date();
+//                log.debug "\n\n////////////////////////////////////////\n" + Thread.currentThread().getName() + " Start. Time = " + new Date();
                 synchronized (triggeredModules) {
                     if (!triggeredModules.isEmpty()) {
                         Set<ModuleId> _set = new HashSet<>();
                         _set.addAll(triggeredModules);
                         containerListener.changed(_set);
-                        triggeredModules.clear()
+                        triggeredModules.clear();
                     }
                 }
                 isTriggered = false;
-                log.debug "\n\n\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n" + Thread.currentThread().getName() + " End. Time = " + new Date();
+//                log.debug "\n\n\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n" + Thread.currentThread().getName() + " End. Time = " + new Date();
             }
         }
     }

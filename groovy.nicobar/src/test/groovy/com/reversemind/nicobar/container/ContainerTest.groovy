@@ -323,7 +323,7 @@ class ContainerTest extends Specification {
         log.info "then:"
     }
 
-    def 'change in script a single string'() {
+    def 'change in script a single line'() {
         setup:
         log.info "info:"
 
