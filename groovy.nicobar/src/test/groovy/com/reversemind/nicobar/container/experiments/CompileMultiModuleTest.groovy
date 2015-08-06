@@ -27,7 +27,7 @@ class CompileMultiModuleTest extends Specification {
 
         Set<Path> runtimeJars = new HashSet<>();
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
-        // because of AntBuilder inside BytecodeLoaderMulti
+        // because of AntBuilder inside MixBytecodeLoader
         runtimeJars.add(Paths.get("src/test/resources/libs/ant-1.9.6.jar").toAbsolutePath())
 
 

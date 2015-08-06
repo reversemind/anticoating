@@ -1,10 +1,10 @@
-package com.reversemind.nicobar.container;
+package com.reversemind.nicobar.container.mix.compiler;
 
 import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.compile.ScriptArchiveCompiler;
 import com.netflix.nicobar.core.compile.ScriptCompilationException;
 import com.netflix.nicobar.core.module.jboss.JBossModuleClassLoader;
-import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper;
+import com.reversemind.nicobar.container.mix.MixGroovy2CompilerHelper;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 
@@ -13,16 +13,16 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- *
+ * Mix - 'cause it is possible to put dependency of .jar & .class at level of .groovy scripts
  */
-public class Groovy2MultiCompiler  implements ScriptArchiveCompiler {
+public class MixGroovy2Compiler implements ScriptArchiveCompiler {
 
-    public final static String GROOVY2_COMPILER_ID = "groovy2multi";
+    public final static String GROOVY2_COMPILER_ID = "mix.groovy2";
     public final static String GROOVY2_COMPILER_PARAMS_CUSTOMIZERS = "customizerClassNames";
 
     private List<String> customizerClassNames = new LinkedList<String>();
 
-    public Groovy2MultiCompiler(Map<String, Object> compilerParams) {
+    public MixGroovy2Compiler(Map<String, Object> compilerParams) {
         this.processCompilerParams(compilerParams);
     }
 
@@ -84,7 +84,7 @@ public class Groovy2MultiCompiler  implements ScriptArchiveCompiler {
 
         config.addCompilationCustomizers(customizers.toArray(new CompilationCustomizer[0]));
 
-        new Groovy2MultiCompilerHelper(compilationRootDir)
+        new MixGroovy2CompilerHelper(compilationRootDir)
                 .addScriptArchive(archive)
                 .withParentClassloader(moduleClassLoader) // TODO: replace JBossModuleClassLoader with generic class loader
                 .withConfiguration(config)

@@ -6,7 +6,8 @@ import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.archive.ScriptModuleSpec;
 import com.netflix.nicobar.core.module.ScriptModule;
 import com.netflix.nicobar.core.module.ScriptModuleUtils;
-import com.reversemind.nicobar.container.plugin.BytecodeMultiLoadingPlugin;
+import com.reversemind.nicobar.container.mix.plugin.MixGroovy2CompilerPlugin;
+import com.reversemind.nicobar.container.mix.plugin.MixBytecodeLoadingPlugin;
 import com.reversemind.nicobar.container.utils.ContainerUtils;
 import com.reversemind.nicobar.container.watcher.PathWatcher;
 import groovy.lang.Binding;
@@ -74,13 +75,9 @@ public class Container implements IContainerListener {
 
 
                 ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
-                        .addCompilerPluginId(BytecodeMultiLoadingPlugin.PLUGIN_ID)
-                        .addCompilerPluginId(Groovy2MultiCompilerPlugin.PLUGIN_ID)
+                        .addCompilerPluginId(MixBytecodeLoadingPlugin.PLUGIN_ID)
+                        .addCompilerPluginId(MixGroovy2CompilerPlugin.PLUGIN_ID)
                         .build();
-
-//                MixScriptArchive mixScriptArchive = new MixScriptArchive(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath(), true);
-//                mixScriptArchive.setModuleSpec(moduleSpec);
-
 
                 PathScriptArchive pathScriptArchive = new PathScriptArchive.Builder(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath())
                         .setModuleSpec(moduleSpec).build();
@@ -99,8 +96,7 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-//    public Container addModules(boolean isSrcPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
-    public Container addModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
+    public Container updateModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
         Path path = isUseClassPath ? classesPath : srcPath;
 
         if (moduleIdMap != null && !moduleIdMap.isEmpty()) {
@@ -131,7 +127,7 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    public Container addModules(boolean isUseClassPath, final Set<ModuleId> moduleIdSet, boolean isSynchronized) throws IOException {
+    public Container updateModules(boolean isUseClassPath, final Set<ModuleId> moduleIdSet, boolean isSynchronized) throws IOException {
         Path path = isUseClassPath ? classesPath : srcPath;
 
         if (moduleIdSet != null && !moduleIdSet.isEmpty()) {
@@ -178,7 +174,7 @@ public class Container implements IContainerListener {
             for (ModuleId moduleId : moduleIds) {
                 moduleIdMap.put(moduleId, true);
             }
-            addModules(isLoadCompiledFirst, moduleIdMap);
+            updateModules(isLoadCompiledFirst, moduleIdMap);
         }
 
         return getInstance();
@@ -268,7 +264,7 @@ public class Container implements IContainerListener {
             @Override
             public void run() {
                 try {
-                    addModules(false, moduleIdSet, true);
+                    updateModules(false, moduleIdSet, true);
                 } catch (IOException e) {
                     // TODO temp solution
                     e.printStackTrace();

@@ -31,7 +31,7 @@ class MixModuleTest extends Specification {
         Path libPath = Paths.get(BASE_PATH, "libs").toAbsolutePath();
 
         Set<Path> runtimeJars = new HashSet<>();
-        // because of AntBuilder inside BytecodeLoaderMulti
+        // because of AntBuilder inside MixBytecodeLoader
         runtimeJars.add(Paths.get("src/test/resources/libs/ant-1.9.6.jar").toAbsolutePath())
         // 'cause it's run under spock tests
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
@@ -80,7 +80,7 @@ class MixModuleTest extends Specification {
         Path libPath = Paths.get(BASE_PATH, "libs").toAbsolutePath();
 
         Set<Path> runtimeJars = new HashSet<>();
-        // because of AntBuilder inside BytecodeLoaderMulti
+        // because of AntBuilder inside MixBytecodeLoader
         runtimeJars.add(Paths.get("src/test/resources/libs/ant-1.9.6.jar").toAbsolutePath())
         // 'cause it's run under spock tests
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())

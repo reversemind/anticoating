@@ -1,7 +1,8 @@
-package com.reversemind.nicobar.container;
+package com.reversemind.nicobar.container.mix;
 
 import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.compile.ScriptCompilationException;
+import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper;
 import groovy.lang.GroovyClassLoader;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
@@ -16,15 +17,20 @@ import java.security.PrivilegedAction;
 import java.util.*;
 
 /**
+ * Mix - 'cause it is possible to put dependency of .jar & .class at level of .groovy scripts
+ * <p/>
  * Helper class for compiling Groovy files into classes. This class takes as it's input a collection
  * of {@link ScriptArchive}s and outputs a {@link GroovyClassLoader} with the classes pre-loaded into it.
  * <p/>
- * If a parent {@link ClassLoader} is not provided, the current thread context classloader is used.
+ * Dependency of .class & .jar - put directly to the groovyClassLoader
+ * <p/>
+ * based on {@link Groovy2CompilerHelper}
  *
- * @author James Kojo
- * @author Vasanth Asokan
+ * // TODO need make attributes protected in Groovy2CompilerHelper
+ *
+ * @author Eugene Kalinin
  */
-public class Groovy2MultiCompilerHelper {
+public class MixGroovy2CompilerHelper{
 
     private final Path targetDir;
     private final List<Path> sourceFiles = new LinkedList<Path>();
@@ -32,31 +38,31 @@ public class Groovy2MultiCompilerHelper {
     private ClassLoader parentClassLoader;
     private CompilerConfiguration compileConfig;
 
-    public Groovy2MultiCompilerHelper(Path targetDir) {
+    public MixGroovy2CompilerHelper(Path targetDir) {
         Objects.requireNonNull(targetDir, "targetDir");
         this.targetDir = targetDir;
     }
 
-    public Groovy2MultiCompilerHelper withParentClassloader(ClassLoader parentClassLoader) {
+    public MixGroovy2CompilerHelper withParentClassloader(ClassLoader parentClassLoader) {
         this.parentClassLoader = parentClassLoader;
         return this;
     }
 
-    public Groovy2MultiCompilerHelper addSourceFile(Path groovyFile) {
+    public MixGroovy2CompilerHelper addSourceFile(Path groovyFile) {
         if (groovyFile != null) {
             sourceFiles.add(groovyFile);
         }
         return this;
     }
 
-    public Groovy2MultiCompilerHelper addScriptArchive(ScriptArchive archive) {
+    public MixGroovy2CompilerHelper addScriptArchive(ScriptArchive archive) {
         if (archive != null) {
             scriptArchives.add(archive);
         }
         return this;
     }
 
-    public Groovy2MultiCompilerHelper withConfiguration(CompilerConfiguration compilerConfig) {
+    public MixGroovy2CompilerHelper withConfiguration(CompilerConfiguration compilerConfig) {
         if (compilerConfig != null) {
             this.compileConfig = compilerConfig;
         }

@@ -1,4 +1,4 @@
-package com.reversemind.nicobar.container.plugin;
+package com.reversemind.nicobar.container.mix.compiler;
 
 import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.compile.ScriptArchiveCompiler;
@@ -19,9 +19,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- *
+ * // TODO - need to clean up & refactor it
  */
-public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
+public class MixBytecodeLoader implements ScriptArchiveCompiler {
 
     /**
      * Compile (load from) an archive, if it contains any .class files.
@@ -220,52 +220,7 @@ public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
 
             return output.toByteArray();
         }
-
-//        Enumeration entries = new JarFile(pathToJarFile.toString()).entries();
-//
-//        while (entries.hasMoreElements()) {
-//
-//            JarEntry entry = (JarEntry) entries.nextElement();
-//            if (entry.isDirectory() || !entry.getName().endsWith(".class")) {
-//                continue;
-//            }
-//
-//            System.out.println(" class inside jar: " + canonicalClassName);
-//
-//            if (canonicalClassName.equals(
-//                    entry.getName().replace('/', '.')
-//            )
-//                    ) {
-//
-//                    InputStream in = file.getInputStream(entry);
-//                    return IOUtils.toByteArray(in);
-//            }
-//        }
-//
-//        ByteArrayOutputStream oStream = new ByteArrayOutputStream();
-//        Streams.copy(in, oStream);
         return null;
     }
-
-//    protected Class findClass(File file, String name) throws ClassNotFoundException {
-//        ZipEntry entry = this.file.getEntry(name.replace('.', '/') + ".class");
-//        if (entry == null) {
-//            throw new ClassNotFoundException(name);
-//        }
-//        try {
-//            byte[] array = new byte[1024];
-//            InputStream in = this.file.getInputStream(entry);
-//            ByteArrayOutputStream out = new ByteArrayOutputStream(array.length);
-//            int length = in.read(array);
-//            while (length > 0) {
-//                out.write(array, 0, length);
-//                length = in.read(array);
-//            }
-//            return defineClass(name, out.toByteArray(), 0, out.size());
-//        }
-//        catch (IOException exception) {
-//            throw new ClassNotFoundException(name, exception);
-//        }
-//    }
 
 }
