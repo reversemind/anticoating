@@ -54,7 +54,7 @@ class MixModuleTest extends Specification {
 
 
         1.times(){
-            container.addMixModule(moduleId, false)
+            container.addModule(moduleId, false)
             Thread.sleep(2000);
             log.info "\n\nmake it again";
         }

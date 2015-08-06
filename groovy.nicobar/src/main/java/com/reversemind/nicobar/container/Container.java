@@ -56,7 +56,7 @@ public class Container implements IContainerListener {
                 moduleMap.put(moduleId, isSynchronize);
 
                 // build from source to classes directory
-                ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
+                ScriptArchive scriptArchive = ContainerUtils.getMixScriptArchiveAtPath(srcPath, moduleId);
                 getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
 
                 if (isSynchronize) {
@@ -73,19 +73,9 @@ public class Container implements IContainerListener {
             if (!moduleMap.containsKey(moduleId)) {
                 moduleMap.put(moduleId, isSynchronize);
 
-
-                ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
-                        .addCompilerPluginId(MixBytecodeLoadingPlugin.PLUGIN_ID)
-                        .addCompilerPluginId(MixGroovy2CompilerPlugin.PLUGIN_ID)
-                        .build();
-
-                PathScriptArchive pathScriptArchive = new PathScriptArchive.Builder(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath())
-                        .setModuleSpec(moduleSpec).build();
-
                 // build from source to classes directory
-//                ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
-                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(pathScriptArchive)));
-//                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(mixScriptArchive)));
+                ScriptArchive scriptArchive = ContainerUtils.getMixScriptArchiveAtPath(srcPath, moduleId);
+                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
 
                 if (isSynchronize) {
                     Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
@@ -240,7 +230,8 @@ public class Container implements IContainerListener {
         if (innerBuilder == null) {
             moduleLoader = builder.getModuleLoader();
             if (moduleLoader == null) {
-                moduleLoader = ContainerUtils.createContainerModuleLoaderBuilder(builder.getRuntimeJarLibs())
+//                moduleLoader = ContainerUtils.createContainerModuleLoaderBuilder(builder.getRuntimeJarLibs())
+                moduleLoader = ContainerUtils.createMixContainerModuleLoaderBuilder(builder.getRuntimeJarLibs())
                         .withCompilationRootDir(builder.getClassesPath())
                         .build();
             }

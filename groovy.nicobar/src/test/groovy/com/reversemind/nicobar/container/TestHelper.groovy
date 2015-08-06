@@ -159,7 +159,7 @@ class TestHelper {
             Container container = Container.getInstance();
 
             1.times(){
-                container.addMixModule(moduleId, false)
+                container.addModule(moduleId, false)
                 Thread.sleep(100);
             }
 

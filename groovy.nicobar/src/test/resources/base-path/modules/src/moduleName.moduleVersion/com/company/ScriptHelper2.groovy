@@ -7,6 +7,6 @@ class ScriptHelper2 {
     }
 
     def static String getResponse(String string) {
-        return "!!! CHANGED !!!|" + string
+        return "ScriptHelper2|" + string
     }
 }

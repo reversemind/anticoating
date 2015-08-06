@@ -302,6 +302,20 @@ public class ContainerUtils {
         return ClassPathUtils.findRootPathForResource("net/sourceforge/cobertura/coveragedata/HasBeenInstrumented.class", classLoader);
     }
 
+    public static ScriptArchive getMixScriptArchiveAtPath(Path basePath, ModuleId moduleId) throws IOException {
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
+                .addCompilerPluginId(MixBytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(MixGroovy2CompilerPlugin.PLUGIN_ID)
+                .build();
+
+        ScriptArchive scriptArchive = new PathScriptArchive.Builder(getModulePath(basePath, moduleId).toAbsolutePath())
+                .setRecurseRoot(true)
+                .setModuleSpec(moduleSpec)
+                .build();
+
+        return scriptArchive;
+    }
+
     public static ScriptArchive getScriptArchiveAtPath(Path basePath, ModuleId moduleId) throws IOException {
         ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
                 .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
