@@ -1,7 +1,6 @@
 package com.reversemind.nicobar.container
 
 import com.netflix.nicobar.core.archive.ModuleId
-import com.reversemind.nicobar.container.utils.FileUtils
 import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
@@ -332,7 +331,7 @@ class ContainerTest extends Specification {
         when:
         log.info "when:"
 
-        FileUtils.replaceContentInFile(filePath.toAbsolutePath().toString(),
+        TestHelper.replaceContentInFile(filePath.toAbsolutePath().toString(),
                 "return \"ScriptHelper2|\" + string",
                 "return \"ScriptHelper2|thread:${Thread.currentThread().getId()}|${Thread.currentThread().getName()}|\" + string")
 
@@ -344,7 +343,7 @@ class ContainerTest extends Specification {
         final String BASE_PATH = "src/test/resources/base-path/modules";
         Path filePath = Paths.get(BASE_PATH, "src", "moduleName.moduleVersion", "com", "company", scriptName).toAbsolutePath();
 
-        FileUtils.replaceContentInFile(filePath.toAbsolutePath().toString(),
+        TestHelper.replaceContentInFile(filePath.toAbsolutePath().toString(),
                 whatReplace,
                 byString)
     }
@@ -352,13 +351,13 @@ class ContainerTest extends Specification {
     private static void backToInitialState() {
         final String BASE_PATH = "src/test/resources/base-path/modules";
         Path filePath = Paths.get(BASE_PATH, "src", "moduleName.moduleVersion", "com", "company", "ScriptHelper2.groovy").toAbsolutePath();
-        FileUtils.replaceContentInFile(filePath.toAbsolutePath().toString(), initialScriptHelper2groovy);
+        TestHelper.replaceContentInFile(filePath.toAbsolutePath().toString(), initialScriptHelper2groovy);
     }
 
     private static void backToInitialStateGroovyScript() {
         final String BASE_PATH = "src/test/resources/base-path/modules";
         Path filePath = Paths.get(BASE_PATH, "src", "moduleName.moduleVersion", "com", "company", "script.groovy").toAbsolutePath();
-        FileUtils.replaceContentInFile(filePath.toAbsolutePath().toString(), initialScriptGroovy);
+        TestHelper.replaceContentInFile(filePath.toAbsolutePath().toString(), initialScriptGroovy);
     }
 
     static String initialScriptHelper2groovy = """package com.company

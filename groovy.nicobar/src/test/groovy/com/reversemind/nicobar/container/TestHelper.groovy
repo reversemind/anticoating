@@ -13,6 +13,10 @@ import java.nio.file.attribute.BasicFileAttributes
 @Slf4j
 class TestHelper {
 
+    private static FileSystem fileSystem = FileSystems.getDefault()
+
+    private static AntBuilder antBuilder = new AntBuilder()
+
     def static prepareJarAndClass(String basePath) {
         final String JAR_BASE_PATH = "src/test/resources/build-jar-from-src";
         final String CLASS_BASE_PATH = "src/test/resources/build-jar-from-src-another";
@@ -162,6 +166,29 @@ class TestHelper {
             container.executeScript(moduleId, "com.company.script")
             container.destroy();
 
+    }
+
+
+    def
+    static void replaceContentInFile(String fileName, String whatReplace, String replaceBy) {
+        if (new File(fileName).exists()) {
+            antBuilder.replace(file: fileName, token: whatReplace, value: replaceBy)
+        }
+    }
+
+    def
+    static void replaceContentInFile(String fileName, String replaceByContent) {
+        if (!new File(fileName).exists()) {
+            new File(fileName).createNewFile()
+        }
+
+        if (new File(fileName).exists()) {
+            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(fileName), "rw");
+            randomAccessFile.setLength(0);
+            randomAccessFile.close();
+
+            new File(fileName) << replaceByContent
+        }
     }
 
 }

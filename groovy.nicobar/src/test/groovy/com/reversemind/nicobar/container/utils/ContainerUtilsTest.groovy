@@ -13,7 +13,7 @@ import java.nio.file.Paths
 @Slf4j
 class ContainerUtilsTest extends Specification{
 
-    def 'ged module id list for path'(){
+    def 'get module id list for path'(){
         setup:
         log.info "setup:"
 

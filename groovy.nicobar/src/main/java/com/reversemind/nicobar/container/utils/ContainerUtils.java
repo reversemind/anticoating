@@ -9,8 +9,8 @@ import com.netflix.nicobar.groovy2.internal.compile.Groovy2Compiler;
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin;
 import com.reversemind.nicobar.container.ContainerModuleLoader;
 import com.reversemind.nicobar.container.mix.compiler.MixGroovy2Compiler;
-import com.reversemind.nicobar.container.mix.plugin.MixGroovy2CompilerPlugin;
 import com.reversemind.nicobar.container.mix.plugin.MixBytecodeLoadingPlugin;
+import com.reversemind.nicobar.container.mix.plugin.MixGroovy2CompilerPlugin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -355,13 +355,6 @@ public class ContainerUtils {
                         this.addPath(filePath);
                         return FileVisitResult.CONTINUE;
                     }
-//
-//                    @Override
-//                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-//                            throws IOException {
-//                        this.addPath(dir);
-//                        return FileVisitResult.CONTINUE;
-//                    }
 
                 }
         );
