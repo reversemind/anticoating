@@ -78,10 +78,10 @@ public class PathWatcher {
         if (trace) {
             Path prev = keys.get(key);
             if (prev == null) {
-                System.out.format("register: %s\n", directory);
+                System.out.format("PathWatcher register: %s\n", directory);
             } else {
                 if (!directory.equals(prev)) {
-                    System.out.format("update: %s -> %s\n", prev, directory);
+                    System.out.format("PathWatcher update: %s -> %s\n", prev, directory);
                 }
             }
         }

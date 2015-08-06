@@ -68,7 +68,7 @@ public class MixBytecodeLoader implements ScriptArchiveCompiler {
                     Path path = Paths.get(_path, jarFile);
 
                     Set<String> _set = getClassNamesFromJar(path);
-                    System.out.println("set:" + _set);
+//                    System.out.println("set:" + _set);
 
 //                    for(String className: _set){
 //                        Class<?> addedClass = moduleClassLoader.loadClassLocal(className.replace(".class", ""), true);

@@ -96,7 +96,7 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    public Container updateModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
+    private Container updateModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
         Path path = isUseClassPath ? classesPath : srcPath;
 
         if (moduleIdMap != null && !moduleIdMap.isEmpty()) {
@@ -109,10 +109,10 @@ public class Container implements IContainerListener {
                         scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(path, moduleId));
 
                         // isSynchronize
-                        if (moduleMap.get(moduleId)) {
-                            Path modulePath = ContainerUtils.getModulePath(path, moduleId).toAbsolutePath();
-                            pathWatcher.register(moduleId, modulePath, true);
-                        }
+//                        if (moduleMap.get(moduleId)) {
+//                            Path modulePath = ContainerUtils.getModulePath(path, moduleId).toAbsolutePath();
+//                            pathWatcher.register(moduleId, modulePath, true);
+//                        }
                     }
                 }
             }
