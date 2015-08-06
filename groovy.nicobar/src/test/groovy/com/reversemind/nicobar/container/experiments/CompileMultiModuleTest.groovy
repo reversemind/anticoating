@@ -14,11 +14,6 @@ import java.nio.file.Paths
 @Slf4j
 class CompileMultiModuleTest extends Specification {
 
-    /**
-     * 1. build BuildJarFromSrc
-     * 2. Remove inside .jar moduleSpec.json
-     * 3. put this jar into level at src
-     */
     def 'build jar from src'() {
         setup:
 
@@ -32,6 +27,8 @@ class CompileMultiModuleTest extends Specification {
 
         Set<Path> runtimeJars = new HashSet<>();
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
+        // because of AntBuilder inside BytecodeLoaderMulti
+        runtimeJars.add(Paths.get("src/test/resources/libs/ant-1.9.6.jar").toAbsolutePath())
 
 
         when:
@@ -49,8 +46,9 @@ class CompileMultiModuleTest extends Specification {
 
         Container container = Container.getInstance();
 
+
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
-        container.addExtraModule(moduleId, false)
+        container.addMixModule(moduleId, false)
 
         then:
         log.info "then:"

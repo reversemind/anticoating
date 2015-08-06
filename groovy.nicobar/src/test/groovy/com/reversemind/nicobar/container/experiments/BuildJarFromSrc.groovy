@@ -158,7 +158,7 @@ class BuildJarFromSrc extends Specification {
 
     }
 
-    def 'copy class file to target usin a single method'(){
+    def 'copy class file to target using a single method'(){
         setup:
         log.info "setup:"
 

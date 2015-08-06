@@ -67,7 +67,7 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    public Container addExtraModule(final ModuleId moduleId, boolean isSynchronize) throws IOException {
+    public Container addMixModule(final ModuleId moduleId, boolean isSynchronize) throws IOException {
         if (moduleId != null) {
             if (!moduleMap.containsKey(moduleId)) {
                 moduleMap.put(moduleId, isSynchronize);
@@ -78,12 +78,17 @@ public class Container implements IContainerListener {
                         .addCompilerPluginId(Groovy2MultiCompilerPlugin.PLUGIN_ID)
                         .build();
 
+//                MixScriptArchive mixScriptArchive = new MixScriptArchive(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath(), true);
+//                mixScriptArchive.setModuleSpec(moduleSpec);
+
+
                 PathScriptArchive pathScriptArchive = new PathScriptArchive.Builder(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath())
                         .setModuleSpec(moduleSpec).build();
 
                 // build from source to classes directory
 //                ScriptArchive scriptArchive = ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId);
                 getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(pathScriptArchive)));
+//                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(mixScriptArchive)));
 
                 if (isSynchronize) {
                     Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
@@ -94,7 +99,10 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    public Container addModules(final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
+//    public Container addModules(boolean isSrcPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
+    public Container addModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
+        Path path = isUseClassPath ? classesPath : srcPath;
+
         if (moduleIdMap != null && !moduleIdMap.isEmpty()) {
 
             LinkedHashSet<ScriptArchive> scriptArchiveSet = new LinkedHashSet<ScriptArchive>();
@@ -102,11 +110,11 @@ public class Container implements IContainerListener {
                 if (moduleId != null) {
                     if (!moduleMap.containsKey(moduleId)) {
                         moduleMap.put(moduleId, moduleIdMap.get(moduleId));
-                        scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId));
+                        scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(path, moduleId));
 
                         // isSynchronize
                         if (moduleMap.get(moduleId)) {
-                            Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
+                            Path modulePath = ContainerUtils.getModulePath(path, moduleId).toAbsolutePath();
                             pathWatcher.register(moduleId, modulePath, true);
                         }
                     }
@@ -123,18 +131,20 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    public Container addModules(final Set<ModuleId> moduleIdSet, boolean isSynchronized) throws IOException {
+    public Container addModules(boolean isUseClassPath, final Set<ModuleId> moduleIdSet, boolean isSynchronized) throws IOException {
+        Path path = isUseClassPath ? classesPath : srcPath;
+
         if (moduleIdSet != null && !moduleIdSet.isEmpty()) {
 
             LinkedHashSet<ScriptArchive> scriptArchiveSet = new LinkedHashSet<ScriptArchive>();
             for (ModuleId moduleId : moduleIdSet) {
                 if (moduleId != null) {
-                    scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(srcPath, moduleId));
+                    scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(path, moduleId));
                     if (!moduleMap.containsKey(moduleId)) {
                         moduleMap.put(moduleId, true);
 
                         if (isSynchronized) {
-                            Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
+                            Path modulePath = ContainerUtils.getModulePath(path, moduleId).toAbsolutePath();
                             pathWatcher.register(moduleId, modulePath);
                         }
                     }
@@ -168,7 +178,7 @@ public class Container implements IContainerListener {
             for (ModuleId moduleId : moduleIds) {
                 moduleIdMap.put(moduleId, true);
             }
-            addModules(moduleIdMap);
+            addModules(isLoadCompiledFirst, moduleIdMap);
         }
 
         return getInstance();
@@ -258,7 +268,7 @@ public class Container implements IContainerListener {
             @Override
             public void run() {
                 try {
-                    addModules(moduleIdSet, true);
+                    addModules(false, moduleIdSet, true);
                 } catch (IOException e) {
                     // TODO temp solution
                     e.printStackTrace();
@@ -345,6 +355,18 @@ public class Container implements IContainerListener {
         public void build() throws IOException, ModuleLoadException {
             container = new Container(this);
         }
+
+    }
+
+    public static void destroy(){
+        container = null;
+
+        moduleLoader = null;
+        innerBuilder = null;
+
+        srcPath = null;
+        classesPath = null;
+        libsPath = null;
     }
 
 }

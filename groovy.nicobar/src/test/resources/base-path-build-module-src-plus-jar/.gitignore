@@ -1,2 +1,4 @@
 !**/external.v1.jar
+**/classes
+**/libs
 !**/OtherHelper.class

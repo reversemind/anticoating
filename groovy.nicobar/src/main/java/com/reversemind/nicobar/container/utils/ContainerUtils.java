@@ -39,6 +39,41 @@ public class ContainerUtils {
     static ScriptModuleSpecSerializer DEFAULT_MODULE_SPEC_SERIALIZER = new GsonScriptModuleSpecSerializer();
 
     public
+    static ContainerModuleLoader.Builder createMixContainerModuleLoaderBuilder(Set<Path> externalLibs) {
+
+        ScriptCompilerPluginSpec.Builder builder = new ScriptCompilerPluginSpec.Builder(Groovy2MultiCompiler.GROOVY2_COMPILER_ID)
+                .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
+                .addRuntimeResource(getGroovyMultiPluginLocation(ExampleResourceLocator.class.getClassLoader()))
+                .addRuntimeResource(getByteCodeLoadingPluginPathMulti())
+
+                        // hack to make the gradle build work. still doesn't seem to properly instrument the code
+                        // should probably add a classloader dependency on the system classloader instead
+                .addRuntimeResource(getCoberturaJar(ContainerUtils.class.getClassLoader()))
+                .withPluginClassName(Groovy2MultiCompilerPlugin.class.getName());
+
+        // in version higher 0.2.6 of Nicobar should be added some useful methods, but now needs to iterate
+        // add run time .jar libs
+        if (!externalLibs.isEmpty()) {
+            for (Path path : externalLibs) {
+                builder.addRuntimeResource(path.toAbsolutePath());
+            }
+        }
+
+        ScriptCompilerPluginSpec mixGroovy2CompilerPluginSpec = builder.build();
+        ScriptCompilerPluginSpec mixByteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec2(externalLibs);
+
+        ScriptCompilerPluginSpec groovy2CompilerPluginSpec = buildGroovy2CompilerPluginSpec(externalLibs);
+        ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec(externalLibs);
+
+        // create and start the builder with the plugin
+        return new ContainerModuleLoader.Builder()
+                .addPluginSpec(mixGroovy2CompilerPluginSpec)
+                .addPluginSpec(mixByteCodeCompilerPluginSpec)
+                .addPluginSpec(groovy2CompilerPluginSpec)
+                .addPluginSpec(byteCodeCompilerPluginSpec);
+    }
+
+    public
     static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder2(Set<Path> externalLibs) {
 
         ScriptCompilerPluginSpec.Builder builder = new ScriptCompilerPluginSpec.Builder(Groovy2MultiCompiler.GROOVY2_COMPILER_ID)
@@ -59,14 +94,13 @@ public class ContainerUtils {
             }
         }
 
-
-        ScriptCompilerPluginSpec groovy2CompilerPluginSpec = builder.build();
-        ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec2(externalLibs);
+        ScriptCompilerPluginSpec mixGroovy2CompilerPluginSpec = builder.build();
+        ScriptCompilerPluginSpec mixByteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec2(externalLibs);
 
         // create and start the builder with the plugin
         return new ContainerModuleLoader.Builder()
-                .addPluginSpec(groovy2CompilerPluginSpec)
-                .addPluginSpec(byteCodeCompilerPluginSpec);
+                .addPluginSpec(mixGroovy2CompilerPluginSpec)
+                .addPluginSpec(mixByteCodeCompilerPluginSpec);
     }
 
     public static Path getGroovyMultiPluginLocation(ClassLoader classLoader) {
@@ -321,13 +355,13 @@ public class ContainerUtils {
                         this.addPath(filePath);
                         return FileVisitResult.CONTINUE;
                     }
-
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                            throws IOException {
-                        this.addPath(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
+//
+//                    @Override
+//                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+//                            throws IOException {
+//                        this.addPath(dir);
+//                        return FileVisitResult.CONTINUE;
+//                    }
 
                 }
         );

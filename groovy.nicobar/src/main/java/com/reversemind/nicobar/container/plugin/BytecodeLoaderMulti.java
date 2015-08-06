@@ -70,12 +70,12 @@ public class BytecodeLoaderMulti implements ScriptArchiveCompiler {
                     Set<String> _set = getClassNamesFromJar(path);
                     System.out.println("set:" + _set);
 
-                    for(String className: _set){
+//                    for(String className: _set){
 //                        Class<?> addedClass = moduleClassLoader.loadClassLocal(className.replace(".class", ""), true);
-//                        addedClasses.add(addedClass);
-                    }
+////                        addedClasses.add(addedClass);
+//                    }
 
-                    ContainerUtils.unJar(path.toFile(), targetDir.resolve(jarFile).toFile(), true);
+                    ContainerUtils.unJar(path.toFile(), targetDir.toFile(), true);
 
                 } catch (Exception e) {
                     e.printStackTrace();
