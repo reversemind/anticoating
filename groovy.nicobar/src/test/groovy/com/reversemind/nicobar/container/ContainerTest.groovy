@@ -2,6 +2,7 @@ package com.reversemind.nicobar.container
 
 import com.netflix.nicobar.core.archive.ModuleId
 import groovy.util.logging.Slf4j
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -107,7 +108,8 @@ class ContainerTest extends Specification {
         log.info "then:"
     }
 
-    def 'auto rebuild scripts and reload'() {
+    @Ignore
+    def 'by Hand - auto rebuild scripts and reload'() {
         setup:
         log.info "setup:"
 
@@ -255,7 +257,7 @@ class ContainerTest extends Specification {
             }
         }, 1, 3, TimeUnit.SECONDS);
 
-        2000.times { idx ->
+        200.times { idx ->
             containerCaller.execute(new ContainerPusher(container, moduleId, idx, true));
             Thread.sleep(10);
         }
