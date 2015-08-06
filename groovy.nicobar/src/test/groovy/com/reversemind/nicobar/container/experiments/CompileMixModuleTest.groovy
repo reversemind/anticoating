@@ -2,17 +2,20 @@ package com.reversemind.nicobar.container.experiments
 
 import com.netflix.nicobar.core.archive.ModuleId
 import com.reversemind.nicobar.container.Container
+import com.reversemind.nicobar.container.TestHelper
 import com.reversemind.nicobar.container.utils.ContainerUtils
 import groovy.util.logging.Slf4j
+import spock.lang.Ignore
 import spock.lang.Specification
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
  */
 @Slf4j
-class CompileMultiModuleTest extends Specification {
+class CompileMixModuleTest extends Specification {
 
     def 'build jar from src'() {
         setup:
@@ -24,6 +27,12 @@ class CompileMultiModuleTest extends Specification {
         Path srcPath = Paths.get(BASE_PATH, "src").toAbsolutePath();
         Path classesPath = Paths.get(BASE_PATH, "classes").toAbsolutePath();
         Path libPath = Paths.get(BASE_PATH, "libs").toAbsolutePath();
+
+        TestHelper.delete(classesPath)
+        TestHelper.delete(libPath)
+
+        Files.createDirectories(classesPath)
+        Files.createDirectories(libPath)
 
         Set<Path> runtimeJars = new HashSet<>();
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
@@ -37,7 +46,7 @@ class CompileMultiModuleTest extends Specification {
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setModuleLoader(
-                ContainerUtils.createContainerModuleLoaderBuilder2(runtimeJars)
+                ContainerUtils.createMixContainerModuleLoaderBuilder(runtimeJars)
                         .withCompilationRootDir(classesPath)
                         .build()
         )
@@ -52,17 +61,10 @@ class CompileMultiModuleTest extends Specification {
 
         then:
         log.info "then:"
+        container.destroy()
     }
 
-    def '1'() {
-        setup:
-        log.info "OUT"
-
-        URL url = this.getClass().getProtectionDomain().getCodeSource().getLocation();
-        String jarPath = URLDecoder.decode(url.getFile(), "UTF-8");
-        println "" + jarPath
-    }
-
+    @Ignore
     def 'Groovy script engine'() {
         setup:
         log.info "OUT"

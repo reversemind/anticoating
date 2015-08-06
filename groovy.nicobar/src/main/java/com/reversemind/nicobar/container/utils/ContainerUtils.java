@@ -72,36 +72,36 @@ public class ContainerUtils {
                 .addPluginSpec(groovy2CompilerPluginSpec)
                 .addPluginSpec(byteCodeCompilerPluginSpec);
     }
-
-    public
-    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder2(Set<Path> externalLibs) {
-
-        ScriptCompilerPluginSpec.Builder builder = new ScriptCompilerPluginSpec.Builder(MixGroovy2Compiler.GROOVY2_COMPILER_ID)
-                .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
-                .addRuntimeResource(getMixGroovy2PluginLocation(ExampleResourceLocator.class.getClassLoader()))
-                .addRuntimeResource(getMixByteCodeLoadingPluginPath())
-
-                        // hack to make the gradle build work. still doesn't seem to properly instrument the code
-                        // should probably add a classloader dependency on the system classloader instead
-                .addRuntimeResource(getCoberturaJar(ContainerUtils.class.getClassLoader()))
-                .withPluginClassName(MixGroovy2CompilerPlugin.class.getName());
-
-        // in version higher 0.2.6 of Nicobar should be added some useful methods, but now needs to iterate
-        // add run time .jar libs
-        if (!externalLibs.isEmpty()) {
-            for (Path path : externalLibs) {
-                builder.addRuntimeResource(path.toAbsolutePath());
-            }
-        }
-
-        ScriptCompilerPluginSpec mixGroovy2CompilerPluginSpec = builder.build();
-        ScriptCompilerPluginSpec mixByteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec2(externalLibs);
-
-        // create and start the builder with the plugin
-        return new ContainerModuleLoader.Builder()
-                .addPluginSpec(mixGroovy2CompilerPluginSpec)
-                .addPluginSpec(mixByteCodeCompilerPluginSpec);
-    }
+//
+//    public
+//    static ContainerModuleLoader.Builder createContainerModuleLoaderBuilder2(Set<Path> externalLibs) {
+//
+//        ScriptCompilerPluginSpec.Builder builder = new ScriptCompilerPluginSpec.Builder(MixGroovy2Compiler.GROOVY2_COMPILER_ID)
+//                .addRuntimeResource(ExampleResourceLocator.getGroovyRuntime())
+//                .addRuntimeResource(getMixGroovy2PluginLocation(ExampleResourceLocator.class.getClassLoader()))
+//                .addRuntimeResource(getMixByteCodeLoadingPluginPath())
+//
+//                        // hack to make the gradle build work. still doesn't seem to properly instrument the code
+//                        // should probably add a classloader dependency on the system classloader instead
+//                .addRuntimeResource(getCoberturaJar(ContainerUtils.class.getClassLoader()))
+//                .withPluginClassName(MixGroovy2CompilerPlugin.class.getName());
+//
+//        // in version higher 0.2.6 of Nicobar should be added some useful methods, but now needs to iterate
+//        // add run time .jar libs
+//        if (!externalLibs.isEmpty()) {
+//            for (Path path : externalLibs) {
+//                builder.addRuntimeResource(path.toAbsolutePath());
+//            }
+//        }
+//
+//        ScriptCompilerPluginSpec mixGroovy2CompilerPluginSpec = builder.build();
+//        ScriptCompilerPluginSpec mixByteCodeCompilerPluginSpec = buildByteCodeCompilerPluginSpec2(externalLibs);
+//
+//        // create and start the builder with the plugin
+//        return new ContainerModuleLoader.Builder()
+//                .addPluginSpec(mixGroovy2CompilerPluginSpec)
+//                .addPluginSpec(mixByteCodeCompilerPluginSpec);
+//    }
 
     public static Path getMixGroovy2PluginLocation(ClassLoader classLoader) {
         String resourceName = ClassPathUtils.classNameToResourceName("com.reversemind.nicobar.container.mix.compiler.MixGroovy2Compiler");

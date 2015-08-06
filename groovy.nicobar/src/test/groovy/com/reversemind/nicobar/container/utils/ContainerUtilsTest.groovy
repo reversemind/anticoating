@@ -34,5 +34,4 @@ class ContainerUtilsTest extends Specification{
         new ArrayList<ModuleId>(set).get(0).toString().equals("moduleName.moduleVersion")
     }
 
-
 }
