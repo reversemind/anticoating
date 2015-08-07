@@ -61,15 +61,14 @@ public class MixBytecodeLoader implements ScriptArchiveCompiler {
                     throw new ScriptCompilationException("Unable to load and copy class: " + entryName, e);
                 }
             } else {
-                // unJar dependency .class into targetDir
+                // Extract dependency from unJar .class into targetDir
                 try {
                     Path pathForUnJar = Paths.get(
                             Paths.get(archive.getRootUrl().toURI()).toAbsolutePath().toString(),
                             entry);
                     ContainerUtils.unJar(pathForUnJar.toFile(), targetDir.toFile(), true);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    // TODO logging
+                    throw new ScriptCompilationException("Unable to extract and copy classes from jar: " + entry, e);
                 }
             }
             moduleClassLoader.addClasses(addedClasses);
