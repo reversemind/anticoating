@@ -62,3 +62,8 @@ sourceSets.main.groovy.srcDirs += ['src/main/java']
 sourceSets.test.java.srcDirs = []
 sourceSets.test.groovy.srcDirs += ['src/test/java']
 println "groovy test directories:${sourceSets.test.groovy.srcDirs}"
+
+
+test {
+    forkEvery = 1
+}

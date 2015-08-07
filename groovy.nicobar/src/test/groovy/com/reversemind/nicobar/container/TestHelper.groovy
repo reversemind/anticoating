@@ -168,7 +168,6 @@ class TestHelper {
 
     }
 
-
     def
     static void replaceContentInFile(String fileName, String whatReplace, String replaceBy) {
         if (new File(fileName).exists()) {

@@ -13,6 +13,9 @@ import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * Adaptation of a directory watcherService (or tree) for changes to files.
+ *
+ * // TODO turn on - if directory is created, and watching recursively
+ * // TODO - refactor it
  */
 public class PathWatcher {
 

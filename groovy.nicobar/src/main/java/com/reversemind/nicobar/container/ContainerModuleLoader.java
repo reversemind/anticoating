@@ -100,6 +100,8 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
      * If this loader already contains an old version of the module, it will be unloaded on
      * successful compile of the new module.
      *
+     * Difference vs ScriptModuleLoader is to reorder a directory for compiled classes from .groovy files
+     *
      * @param candidateArchives archives to load or update
      */
     @Override
@@ -167,8 +169,8 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
                 try {
                     moduleSpec = createModuleSpec(scriptArchive, candidateRevisionId, updatedRevisionIdMap, moduleCompilationRoot);
                 } catch (ModuleLoadException e) {
+                    e.printStackTrace();
 //                    log.error("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId(), e);
-                    System.out.println("Exception loading archive " + scriptArchive.getModuleSpec().getModuleId() + e);
                     notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.ARCHIVE_IO_EXCEPTION, e);
                     continue;
                 }
@@ -204,7 +206,6 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
                     e.printStackTrace();
                     // rollback
 //                    log.error("Exception loading module " + candidateRevisionId, e);
-                    System.out.println("Exception loading module " + candidateRevisionId + " " + e);
                     if (candidateArchives.contains(scriptArchive)) {
                         // this spec came from a candidate archive. Send reject notification
                         notifyArchiveRejected(scriptArchive, ArchiveRejectedReason.COMPILE_FAILURE, e);

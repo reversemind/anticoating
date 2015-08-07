@@ -1,4 +1,4 @@
-package com.reversemind.nicobar.container.mix;
+package com.reversemind.nicobar.container.mix.compiler;
 
 import com.netflix.nicobar.core.archive.ScriptArchive;
 import com.netflix.nicobar.core.compile.ScriptCompilationException;
