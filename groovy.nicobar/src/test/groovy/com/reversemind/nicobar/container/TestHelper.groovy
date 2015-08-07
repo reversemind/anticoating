@@ -190,4 +190,14 @@ class TestHelper {
         }
     }
 
+    def
+    static resetContainer() {
+        try {
+            if (Container.getInstance() != null) {
+                Container.getInstance().destroy();
+            }
+        } catch (Exception ignore) {
+        }
+    }
+
 }
