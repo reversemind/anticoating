@@ -2,6 +2,7 @@ package com.reversemind.nicobar.container.experiments
 
 import com.netflix.nicobar.core.archive.ModuleId
 import com.reversemind.nicobar.container.Container
+import com.reversemind.nicobar.container.TestHelper
 import com.reversemind.nicobar.container.utils.ContainerUtils
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
@@ -35,6 +36,7 @@ class BuildJarFromSrc extends Specification {
         when:
         log.info "when:"
 
+        TestHelper.resetContainer()
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setRuntimeJarLibs(runtimeJars)
@@ -73,6 +75,7 @@ class BuildJarFromSrc extends Specification {
         when:
         log.info "when:"
 
+        TestHelper.resetContainer()
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setRuntimeJarLibs(runtimeJars)

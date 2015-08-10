@@ -56,6 +56,8 @@ class TestHelper {
         Set<Path> runtimeJars = new HashSet<>();
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
 
+        resetContainer()
+
         new Container.Builder(srcPath, classesPath, libPath)
                 .setRuntimeJarLibs(runtimeJars)
                 .build()
@@ -83,6 +85,8 @@ class TestHelper {
 
         Set<Path> runtimeJars = new HashSet<>();
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
+
+        resetContainer()
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setRuntimeJarLibs(runtimeJars)

@@ -36,6 +36,7 @@ class ContainerModuleLoaderTest extends Specification {
         Set<Path> runtimeJars = new HashSet<>();
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
 
+        TestHelper.resetContainer()
 
         new Container.Builder(MODULES_SRC, MODULES_CLASSES, MODULES_LIBS)
                 .setRuntimeJarLibs(runtimeJars)

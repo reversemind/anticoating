@@ -40,6 +40,7 @@ class MixModuleTest extends Specification {
         when:
         log.info "when"
 
+        TestHelper.resetContainer()
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setModuleLoader(

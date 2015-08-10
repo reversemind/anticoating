@@ -18,9 +18,7 @@ class ContainerUtilsTest extends Specification{
         log.info "setup:"
 
         Path BASE_PATH = Paths.get("src/test/resources/base-path-build-module-src-plus-jar").toAbsolutePath();
-
-        TestHelper.mixCompilationOfModule();
-        Path modulesAtPath = Paths.get(BASE_PATH.toString(), "classes").toAbsolutePath()
+        Path modulesAtPath = Paths.get(BASE_PATH.toString(), "src").toAbsolutePath()
 
         when:
         log.info "when:"

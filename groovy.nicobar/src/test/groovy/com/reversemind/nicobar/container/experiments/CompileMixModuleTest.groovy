@@ -31,8 +31,11 @@ class CompileMixModuleTest extends Specification {
         TestHelper.delete(classesPath)
         TestHelper.delete(libPath)
 
-        Files.createDirectories(classesPath)
-        Files.createDirectories(libPath)
+        try{
+            Files.createDirectories(classesPath)
+            Files.createDirectories(libPath)
+        }catch (Exception ignore){}
+
 
         Set<Path> runtimeJars = new HashSet<>();
         runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
@@ -43,6 +46,7 @@ class CompileMixModuleTest extends Specification {
         when:
         log.info "when:"
 
+        TestHelper.resetContainer()
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setModuleLoader(

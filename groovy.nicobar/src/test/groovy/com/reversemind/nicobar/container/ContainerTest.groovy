@@ -60,6 +60,8 @@ class ContainerTest extends Specification {
         when:
         log.info "when:"
 
+        TestHelper.resetContainer()
+
         new Container.Builder(srcPath, classesPath, libPath)
                 .setRuntimeJarLibs(runtimeJars)
                 .build()
@@ -93,6 +95,8 @@ class ContainerTest extends Specification {
         when:
         log.info "when:"
 
+        TestHelper.resetContainer()
+
         new Container.Builder(srcPath, classesPath, libPath)
                 .setRuntimeJarLibs(runtimeJars)
                 .build()
@@ -125,6 +129,8 @@ class ContainerTest extends Specification {
 
         when:
         log.info "when:"
+
+        TestHelper.resetContainer()
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setRuntimeJarLibs(runtimeJars)
@@ -165,6 +171,8 @@ class ContainerTest extends Specification {
         when:
         log.info "when:"
 
+        TestHelper.resetContainer()
+
         new Container.Builder(srcPath, classesPath, libPath)
                 .setWatchPeriod(100)
                 .setNotifyPeriod(1000)
@@ -192,7 +200,7 @@ class ContainerTest extends Specification {
             }
         }, 1, 3, TimeUnit.SECONDS);
 
-        2000.times { idx ->
+        200.times { idx ->
             containerCaller.execute(new ContainerPusher(container, moduleId, idx, false));
             Thread.sleep(10);
         }
@@ -227,6 +235,8 @@ class ContainerTest extends Specification {
 
         when:
         log.info "when:"
+
+        TestHelper.resetContainer()
 
         new Container.Builder(srcPath, classesPath, libPath)
                 .setWatchPeriod(100)
@@ -297,6 +307,11 @@ class ContainerTest extends Specification {
                 println "index:" + index + "|" + Thread.currentThread().getName() + "|time:" + dateFormat.format(date) + "/stamp:" + date.getTime() + "\n";
             } else {
                 Class clazz = this.container.findClass(this.moduleId, "com.company.ScriptHelper2");
+
+                if(clazz == null){
+                    throw new IllegalStateException("Could not find class int container")
+                }
+
                 Object object = clazz.newInstance()
                 Date date = new Date();
                 String threadName = "index:" + index + "|" + Thread.currentThread().getName() + "|time:" + dateFormat.format(date) + "/stamp:" + date.getTime();
