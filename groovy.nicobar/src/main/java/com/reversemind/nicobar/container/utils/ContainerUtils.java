@@ -404,4 +404,57 @@ public class ContainerUtils {
         expand.setOverwrite(overwrite);
         expand.execute();
     }
+
+    /**
+     * Look inside a directory and find date(timestamp) of recently modified dir or file
+     *
+     * @param rootPath - path where to find any dir of a file date that was recently modified
+     * @return - a time stamp
+     * @throws IOException -
+     */
+    public static Long recentlyModifyDate(Path rootPath) throws IOException {
+        if (rootPath == null) {
+            return null;
+        }
+
+        if (!rootPath.toFile().exists()) {
+            return null;
+        }
+
+        ComparePathDate compareDate = new ComparePathDate();
+        Files.walkFileTree(rootPath.toAbsolutePath(), compareDate);
+
+        return compareDate.getCompareDate();
+    }
+
+    /**
+     * Helper class
+     */
+    private static class ComparePathDate extends SimpleFileVisitor<Path> {
+
+        Long compareDate = 0L;
+
+        private void process(Path path) {
+            File file = path.toFile();
+            if (compareDate <= file.lastModified()) {
+                compareDate = file.lastModified();
+            }
+        }
+
+        public Long getCompareDate() {
+            return compareDate;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path directory, IOException exc) throws IOException {
+            process(directory);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            process(file);
+            return FileVisitResult.CONTINUE;
+        }
+    }
 }
