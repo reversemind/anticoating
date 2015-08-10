@@ -72,26 +72,27 @@ class DetectWhatToLoadWhatToRecompileTest extends Specification{
                 whatToCompile = new HashSet<>(whatNeedToCompileInAnyWay);
             }
 
-            // #2 detect what is more early
-            for (ModuleId _moduleId : whatToLoad) {
+            Iterator<ModuleId> iterator = whatToLoad.iterator();
+            while(iterator.hasNext()){
+                ModuleId _moduleId = iterator.next();
+
                 Date classDate = allMapFromClasses.get(_moduleId);
                 Date srcDate = allMapFromSrc.get(_moduleId);
 
                 if (classDate == null) {
-                    whatToLoad.remove(_moduleId)
+                    iterator.remove();
                 } else {
                     if (srcDate != null) {
-                        if (classDate < srcDate) {
-                            whatToLoad.remove(_moduleId)
+                        if (classDate.getTime() < srcDate.getTime()) {
+                            iterator.remove();
                         }
                     } else {
                         // it means that allMapFromSrc does not contains a _moduleId
                         // so means that we should not LOAD it FROM CLASSES
-                        whatToLoad.remove(_moduleId);
+                        iterator.remove();
                     }
                 }
             }
-
 
             // #3 let's have a look - what need to load & what need to recompile
 

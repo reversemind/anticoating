@@ -509,22 +509,24 @@ public class ContainerUtils {
                 whatToCompile = whatNeedToCompileInAnyWay;
             }
 
-            // #2 detect what is more early
-            for (ModuleId _moduleId : whatToLoad) {
+            Iterator<ModuleId> iterator = whatToLoad.iterator();
+            while(iterator.hasNext()){
+                ModuleId _moduleId = iterator.next();
+
                 Date classDate = allMapFromClasses.get(_moduleId);
                 Date srcDate = allMapFromSrc.get(_moduleId);
 
                 if (classDate == null) {
-                    whatToLoad.remove(_moduleId);
+                    iterator.remove();
                 } else {
                     if (srcDate != null) {
                         if (classDate.getTime() < srcDate.getTime()) {
-                            whatToLoad.remove(_moduleId);
+                            iterator.remove();
                         }
                     } else {
                         // it means that allMapFromSrc does not contains a _moduleId
                         // so means that we should not LOAD it FROM CLASSES
-                        whatToLoad.remove(_moduleId);
+                        iterator.remove();
                     }
                 }
             }
