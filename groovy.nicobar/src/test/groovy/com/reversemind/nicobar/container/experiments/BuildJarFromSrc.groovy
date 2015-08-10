@@ -46,7 +46,7 @@ class BuildJarFromSrc extends Specification {
 
         ModuleId moduleId = ModuleId.create("external", "v1")
 
-        container.addModule(moduleId, false)
+        container.addSrcModuleAndCompile(moduleId, false)
 
 
         ContainerUtils.packToJar(ContainerUtils.getModulePath(classesPath, moduleId),
@@ -85,7 +85,7 @@ class BuildJarFromSrc extends Specification {
 
         ModuleId moduleId = ModuleId.create("other", "v02")
 
-        container.addModule(moduleId, false)
+        container.addSrcModuleAndCompile(moduleId, false)
 
 
         ContainerUtils.packToJar(ContainerUtils.getModulePath(classesPath, moduleId),

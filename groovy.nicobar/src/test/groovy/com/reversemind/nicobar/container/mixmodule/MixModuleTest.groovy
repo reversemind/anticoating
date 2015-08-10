@@ -8,7 +8,6 @@ import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
 import java.nio.file.*
-import java.nio.file.attribute.BasicFileAttributes
 
 /**
  *
@@ -55,7 +54,7 @@ class MixModuleTest extends Specification {
 
 
         1.times(){
-            container.addModule(moduleId, false)
+            container.addSrcModuleAndCompile(moduleId, false)
             Thread.sleep(2000);
             log.info "\n\nmake it again";
         }

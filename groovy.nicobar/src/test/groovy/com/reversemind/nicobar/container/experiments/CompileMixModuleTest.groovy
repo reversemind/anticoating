@@ -61,7 +61,7 @@ class CompileMixModuleTest extends Specification {
 
 
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
-        container.addModule(moduleId, false)
+        container.addSrcModuleAndCompile(moduleId, false)
 
         then:
         log.info "then:"

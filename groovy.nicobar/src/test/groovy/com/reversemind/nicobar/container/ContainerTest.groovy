@@ -105,7 +105,44 @@ class ContainerTest extends Specification {
 
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
 
-        container.addModule(moduleId, false)
+        container.addSrcModuleAndCompile(moduleId, false)
+        container.executeScript(moduleId, "com.company.script")
+
+        then:
+        log.info "then:"
+    }
+
+
+    def 'load precompiled modules & compile non precompiled'() {
+        setup:
+        log.info "setup:"
+
+        TestHelper.mixCompilationOfModule()
+
+        final String BASE_PATH = "src/test/resources/base-path-build-module-src-plus-jar";
+
+        Path srcPath = Paths.get(BASE_PATH, "src").toAbsolutePath();
+        Path classesPath = Paths.get(BASE_PATH, "classes").toAbsolutePath();
+        Path libPath = Paths.get(BASE_PATH, "libs").toAbsolutePath();
+
+        Set<Path> runtimeJars = new HashSet<>();
+        runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
+
+
+        when:
+        log.info "when:"
+
+        TestHelper.resetContainer()
+
+        new Container.Builder(srcPath, classesPath, libPath)
+                .setRuntimeJarLibs(runtimeJars)
+                .build()
+
+        Container container = Container.getInstance();
+
+        container.loadModulesAtStart();
+
+        ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
         container.executeScript(moduleId, "com.company.script")
 
         then:
@@ -140,7 +177,7 @@ class ContainerTest extends Specification {
 
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
 
-        container.addModule(moduleId, true)
+        container.addSrcModuleAndCompile(moduleId, true)
 
         10000.times() {
             container.executeScript(moduleId, "com.company.script")
@@ -183,7 +220,7 @@ class ContainerTest extends Specification {
 
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
 
-        container.addModule(moduleId, true)
+        container.addSrcModuleAndCompile(moduleId, true)
 
 
         scheduledThreadPool.scheduleAtFixedRate(new Runnable() {
@@ -248,7 +285,7 @@ class ContainerTest extends Specification {
 
         ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
 
-        container.addModule(moduleId, true)
+        container.addSrcModuleAndCompile(moduleId, true)
 
 
         scheduledThreadPool.scheduleAtFixedRate(new Runnable() {

@@ -66,7 +66,7 @@ class TestHelper {
 
         ModuleId moduleId = ModuleId.create("external", "v1")
 
-        container.addModule(moduleId, false)
+        container.addSrcModuleAndCompile(moduleId, false)
 
 
         ContainerUtils.packToJar(ContainerUtils.getModulePath(classesPath, moduleId),
@@ -96,7 +96,7 @@ class TestHelper {
 
         ModuleId moduleId = ModuleId.create("other", "v02")
 
-        container.addModule(moduleId, false)
+        container.addSrcModuleAndCompile(moduleId, false)
 
 
         ContainerUtils.packToJar(ContainerUtils.getModulePath(classesPath, moduleId),
@@ -163,7 +163,7 @@ class TestHelper {
             Container container = Container.getInstance();
 
             1.times(){
-                container.addModule(moduleId, false)
+                container.addSrcModuleAndCompile(moduleId, false)
                 Thread.sleep(100);
             }
 

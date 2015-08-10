@@ -461,6 +461,7 @@ public class ContainerUtils {
 
     /**
      * Need to make a description for business logic - how to process compiled and src script directories
+     * One of the simples solution
      *
      * @param classesAtPath -
      * @param sourcesAtPath -
@@ -471,10 +472,6 @@ public class ContainerUtils {
         final Set<ModuleId> EMPTY = new HashSet<>();
 
         if(sourcesAtPath == null){
-            return Pair.create(EMPTY, EMPTY);
-        }
-
-        if(!sourcesAtPath.toFile().exists()){
             return Pair.create(EMPTY, EMPTY);
         }
 

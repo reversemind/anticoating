@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.SynchronousQueue;
 
 /**
  *
@@ -50,7 +51,7 @@ public class Container implements IContainerListener {
         return container;
     }
 
-    public Container addModule(final ModuleId moduleId, boolean isSynchronize) throws IOException {
+    public Container addSrcModuleAndCompile(final ModuleId moduleId, boolean isSynchronize) throws IOException {
         if (moduleId != null) {
             if (!moduleMap.containsKey(moduleId)) {
                 moduleMap.put(moduleId, isSynchronize);
@@ -68,27 +69,7 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
-    public Container addMixModule(final ModuleId moduleId, boolean isSynchronize) throws IOException {
-        if (moduleId != null) {
-            if (!moduleMap.containsKey(moduleId)) {
-                moduleMap.put(moduleId, isSynchronize);
-
-                // build from source to classes directory
-                ScriptArchive scriptArchive = ContainerUtils.getMixScriptArchiveAtPath(srcPath, moduleId);
-                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
-
-                if (isSynchronize) {
-                    Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
-                    pathWatcher.register(moduleId, modulePath, true);
-                }
-            }
-        }
-        return getInstance();
-    }
-
-    private Container loadCompiledModules(boolean isUseClassPath, final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
-        Path path = isUseClassPath ? classesPath : srcPath;
-
+    private Container loadCompiledModules(final Map<ModuleId, Boolean> moduleIdMap) throws IOException {
         if (moduleIdMap != null && !moduleIdMap.isEmpty()) {
 
             LinkedHashSet<ScriptArchive> scriptArchiveSet = new LinkedHashSet<ScriptArchive>();
@@ -96,13 +77,7 @@ public class Container implements IContainerListener {
                 if (moduleId != null) {
                     if (!moduleMap.containsKey(moduleId)) {
                         moduleMap.put(moduleId, moduleIdMap.get(moduleId));
-                        scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(path, moduleId));
-
-                        // isSynchronize
-//                        if (moduleMap.get(moduleId)) {
-//                            Path modulePath = ContainerUtils.getModulePath(path, moduleId).toAbsolutePath();
-//                            pathWatcher.register(moduleId, modulePath, true);
-//                        }
+                        scriptArchiveSet.add(ContainerUtils.getScriptArchiveAtPath(classesPath, moduleId));
                     }
                 }
             }
@@ -164,7 +139,58 @@ public class Container implements IContainerListener {
             for (ModuleId moduleId : moduleIds) {
                 moduleIdMap.put(moduleId, true);
             }
-            loadCompiledModules(isLoadCompiledFirst, moduleIdMap);
+            loadCompiledModules(moduleIdMap);
+        }
+
+        return getInstance();
+    }
+
+    /**
+     * One of the important methods in logic of loading precompiled modules
+     *
+     * @return - return an container instance
+     * @throws IOException - if some paths are not exists
+     */
+    public Container loadModulesAtStart() throws IOException {
+
+        // TODO implements logic about number of modules in classes & src sub dirs
+        // TODO compare modules compiled and src file - may be via special hash function - like git
+
+        ContainerUtils.Pair<Set<ModuleId>, Set<ModuleId>> pair = ContainerUtils.getModuleToLoadAndCompile(classesPath, srcPath);
+
+        if(pair != null){
+            Set<ModuleId> modulesToLoad = pair.getT1();
+            Set<ModuleId> modulesToCompile = pair.getT2();
+
+            // TODO logging
+            System.out.println("modulesToLoad:" + modulesToLoad);
+            System.out.println("modulesToCompile:" + modulesToCompile);
+
+            long beginTime = System.currentTimeMillis();
+            System.out.println("Started loading from classes at:" + new Date(beginTime) + " timestamp:" + beginTime);
+            if(modulesToLoad != null && !modulesToLoad.isEmpty()){
+                Map<ModuleId, Boolean> moduleIdMap = new HashMap<ModuleId, Boolean>();
+                for (ModuleId moduleId : modulesToLoad) {
+                    moduleIdMap.put(moduleId, true);
+                }
+                loadCompiledModules(moduleIdMap);
+            }
+            System.out.println("Loaded compiled modules for:" + (System.currentTimeMillis() - beginTime) + " ms");
+
+
+            beginTime = System.currentTimeMillis();
+            System.out.println("Started compiling modules from source at:" + new Date(beginTime) + " timestamp:" + beginTime);
+            if(modulesToCompile != null && !modulesToCompile.isEmpty()){
+
+                for (ModuleId moduleId : modulesToCompile) {
+                    System.out.println("Compile module:" + moduleId);
+                    this.addSrcModuleAndCompile(moduleId, true);
+                }
+            }
+            System.out.println("Compiled modules from src for:" + (System.currentTimeMillis() - beginTime) + " ms");
+
+
+
         }
 
         return getInstance();
