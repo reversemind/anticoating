@@ -1,5 +1,6 @@
 package com.reversemind.nicobar.container.utils;
 
+import com.google.common.collect.Sets;
 import com.netflix.nicobar.core.archive.*;
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin;
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec;
@@ -24,9 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 
@@ -418,6 +417,8 @@ public class ContainerUtils {
         }
 
         if (!rootPath.toFile().exists()) {
+            // TODO logging
+            System.out.println("File is not exist:" + rootPath.toString());
             return null;
         }
 
@@ -457,4 +458,159 @@ public class ContainerUtils {
             return FileVisitResult.CONTINUE;
         }
     }
+
+    /**
+     * Need to make a description for business logic - how to process compiled and src script directories
+     *
+     * @param classesAtPath -
+     * @param sourcesAtPath -
+     * @return - Pair<Set<ModuleId>, Set<ModuleId>>
+     */
+    @SuppressWarnings("unchecked")
+    public static Pair<Set<ModuleId>, Set<ModuleId>> getModuleToLoadAndCompile(Path classesAtPath, Path sourcesAtPath) throws IOException {
+        final Set<ModuleId> EMPTY = new HashSet<>();
+
+        if(sourcesAtPath == null){
+            return Pair.create(EMPTY, EMPTY);
+        }
+
+        if(!sourcesAtPath.toFile().exists()){
+            return Pair.create(EMPTY, EMPTY);
+        }
+
+        Set<ModuleId> whatToLoad = new HashSet<>();
+        Set<ModuleId> whatToCompile = new HashSet<>();
+
+        Set<ModuleId> allClassesModulesSet = getModuleIdListAtPath(classesAtPath);
+        Set<ModuleId> allSrcModulesSet = getModuleIdListAtPath(sourcesAtPath);
+
+
+        if(allClassesModulesSet.isEmpty()){
+            whatToCompile = allSrcModulesSet;
+        }else {
+
+            whatToLoad = allClassesModulesSet;
+            whatToCompile = allSrcModulesSet;
+
+            Map<ModuleId, Date> allMapFromClasses = getRecentlyModificationDate(allClassesModulesSet, classesAtPath);
+            Map<ModuleId, Date> allMapFromSrc = getRecentlyModificationDate(allSrcModulesSet, sourcesAtPath);
+
+            // #1 detect difference in classes and src
+            Set<ModuleId> whatNeedToRemoveForLoadingFromClasses = new HashSet<>(Sets.difference(allClassesModulesSet, allSrcModulesSet));
+            Set<ModuleId> whatNeedToCompileInAnyWay = new HashSet<>(Sets.difference(allSrcModulesSet, allClassesModulesSet));
+
+            if (!whatNeedToRemoveForLoadingFromClasses.isEmpty()) {
+                for (ModuleId _moduleId : whatNeedToRemoveForLoadingFromClasses) {
+                    whatToLoad.remove(_moduleId);
+                }
+            }
+
+            if (!whatNeedToCompileInAnyWay.isEmpty()) {
+                whatToCompile = whatNeedToCompileInAnyWay;
+            }
+
+            // #2 detect what is more early
+            for (ModuleId _moduleId : whatToLoad) {
+                Date classDate = allMapFromClasses.get(_moduleId);
+                Date srcDate = allMapFromSrc.get(_moduleId);
+
+                if (classDate == null) {
+                    whatToLoad.remove(_moduleId);
+                } else {
+                    if (srcDate != null) {
+                        if (classDate.getTime() < srcDate.getTime()) {
+                            whatToLoad.remove(_moduleId);
+                        }
+                    } else {
+                        // it means that allMapFromSrc does not contains a _moduleId
+                        // so means that we should not LOAD it FROM CLASSES
+                        whatToLoad.remove(_moduleId);
+                    }
+                }
+            }
+        }
+
+        return Pair.create(whatToLoad, whatToCompile);
+    }
+
+    public static Map<ModuleId, Date> getRecentlyModificationDate(Set<ModuleId> moduleIdSet, Path path) throws IOException {
+        if (path == null) {
+            return new HashMap<ModuleId, Date>();
+        }
+
+        if (!path.toFile().exists()) {
+            return new HashMap<ModuleId, Date>();
+        }
+
+        if (moduleIdSet.isEmpty()) {
+            return new HashMap<ModuleId, Date>();
+        }
+
+        Map<ModuleId, Date> map = new HashMap<ModuleId, Date>();
+
+        for (ModuleId moduleId : moduleIdSet) {
+            Pair<ModuleId, Date> _pair = getRecentlyModificationDate(moduleId, path);
+
+            if (_pair != null && _pair.getT1() != null && _pair.getT2() != null) {
+                // t1 - moduleId, t2 - date
+                map.put(_pair.getT1(), _pair.getT2());
+            }
+        }
+
+        return map;
+    }
+
+    public static Pair<ModuleId, Date> getRecentlyModificationDate(ModuleId moduleId, Path path) throws IOException {
+        if (path == null) {
+            return Pair.create(null, null);
+        }
+
+        if (!path.toFile().exists()) {
+            return Pair.create(null, null);
+        }
+
+        if (moduleId == null) {
+            return Pair.create(null, null);
+        }
+
+        Long timestamp = ContainerUtils.recentlyModifyDate(path.resolve(moduleId.toString()));
+
+        if (timestamp == null) {
+            return Pair.create(null, null);
+        }
+
+        return Pair.create(moduleId, new Date(timestamp));
+    }
+
+    public static class Pair<T1, T2> {
+
+        private final T1 t1;
+        private final T2 t2;
+
+        public Pair(T1 t1, T2 t2) {
+            this.t1 = t1;
+            this.t2 = t2;
+        }
+
+        public T1 getT1() {
+            return t1;
+        }
+
+        public T2 getT2() {
+            return t2;
+        }
+
+        public static <T1, T2> Pair<T1, T2> create(T1 t1, T2 t2) {
+            return new Pair<T1, T2>(t1, t2);
+        }
+
+        @Override
+        public String toString() {
+            return "Pair{" +
+                    "t1=" + t1 +
+                    ", t2=" + t2 +
+                    '}';
+        }
+    }
+
 }
