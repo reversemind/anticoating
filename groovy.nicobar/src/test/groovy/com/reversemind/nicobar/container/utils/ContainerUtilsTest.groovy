@@ -19,6 +19,7 @@ class ContainerUtilsTest extends Specification {
         setup:
         log.info "setup:"
 
+        TestHelper.mixCompilationOfModule()
         Path BASE_PATH = Paths.get("src/test/resources/base-path-build-module-src-plus-jar").toAbsolutePath();
         Path modulesAtPath = Paths.get(BASE_PATH.toString(), "src").toAbsolutePath()
 
@@ -30,15 +31,14 @@ class ContainerUtilsTest extends Specification {
         then:
         log.info "then:"
 
-        set.size() == 1
-        new ArrayList<ModuleId>(set).get(0).toString().equals("moduleName.moduleVersion")
+        set.size() == 2
     }
 
     def 'recently modify date'() {
         setup:
         log.info "setup:"
 
-        prepareFiles()
+        TestHelper.mixCompilationOfModule()
 
         Path BASE_PATH = Paths.get("src/test/resources/base-path-build-module-src-plus-jar").toAbsolutePath();
         Path srcAtPath = Paths.get(BASE_PATH.toString(), "src", "moduleName.moduleVersion").toAbsolutePath()
@@ -65,47 +65,5 @@ class ContainerUtilsTest extends Specification {
     }
 
     static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-
-    def
-    static void prepareFiles(){
-        ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
-
-        final String BASE_PATH = "src/test/resources/base-path-build-module-src-plus-jar"
-        TestHelper.delete(Paths.get(BASE_PATH, "classes", moduleId.toString()))
-        TestHelper.prepareJarAndClass(BASE_PATH)
-
-        Path srcPath = Paths.get(BASE_PATH, "src").toAbsolutePath();
-        Path classesPath = Paths.get(BASE_PATH, "classes").toAbsolutePath();
-        Path libPath = Paths.get(BASE_PATH, "libs").toAbsolutePath();
-
-        Set<Path> runtimeJars = new HashSet<>();
-        // because of AntBuilder inside MixBytecodeLoader
-        runtimeJars.add(Paths.get("src/test/resources/libs/ant-1.9.6.jar").toAbsolutePath())
-        // 'cause it's run under spock tests
-        runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
-
-        TestHelper.resetContainer()
-
-        new Container.Builder(srcPath, classesPath, libPath)
-                .setModuleLoader(
-                ContainerUtils.createMixContainerModuleLoaderBuilder(runtimeJars)
-                        .withCompilationRootDir(classesPath)
-                        .build()
-        )
-                .setRuntimeJarLibs(runtimeJars)
-                .build()
-
-        Container container = Container.getInstance();
-
-
-        1.times(){
-            container.addModule(moduleId, false)
-            Thread.sleep(2000);
-            log.info "\n\nmake it again";
-        }
-
-        container.executeScript(moduleId, "com.company.script")
-        container.destroy();
-    }
 
 }
