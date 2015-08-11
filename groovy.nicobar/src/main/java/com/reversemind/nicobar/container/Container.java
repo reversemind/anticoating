@@ -1,13 +1,9 @@
 package com.reversemind.nicobar.container;
 
 import com.netflix.nicobar.core.archive.ModuleId;
-import com.netflix.nicobar.core.archive.PathScriptArchive;
 import com.netflix.nicobar.core.archive.ScriptArchive;
-import com.netflix.nicobar.core.archive.ScriptModuleSpec;
 import com.netflix.nicobar.core.module.ScriptModule;
 import com.netflix.nicobar.core.module.ScriptModuleUtils;
-import com.reversemind.nicobar.container.mix.plugin.MixGroovy2CompilerPlugin;
-import com.reversemind.nicobar.container.mix.plugin.MixBytecodeLoadingPlugin;
 import com.reversemind.nicobar.container.utils.ContainerUtils;
 import com.reversemind.nicobar.container.watcher.PathWatcher;
 import groovy.lang.Binding;
@@ -19,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.SynchronousQueue;
 
 /**
  *
@@ -28,6 +23,7 @@ import java.util.concurrent.SynchronousQueue;
 public class Container implements IContainerListener {
 
     private static Container container;
+//    private final static Object lock = new Object();
 
     private static ContainerModuleLoader moduleLoader;
     private static Builder innerBuilder;
@@ -38,7 +34,7 @@ public class Container implements IContainerListener {
 
     private static ConcurrentHashMap<ModuleId, Boolean> moduleMap = new ConcurrentHashMap<ModuleId, Boolean>();
 
-    private PathWatcher pathWatcher;
+    private static PathWatcher pathWatcher;
 
     private Container(Builder builder) throws IOException, ModuleLoadException {
         this.build(builder);
@@ -277,17 +273,16 @@ public class Container implements IContainerListener {
     @Override
     public void changed(final Set<ModuleId> moduleIdSet) {
         // TODO what about async - for changed caller
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    loadCompiledModules(false, moduleIdSet, true);
-                } catch (IOException e) {
-                    // TODO temp solution
-                    e.printStackTrace();
+        // TODO make it sync !!!!
+        try {
+            if(moduleIdSet != null && !moduleIdSet.isEmpty()){
+                for(ModuleId moduleId: moduleIdSet){
+                    addSrcModuleAndCompile(moduleId, false);
                 }
             }
-        }.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class Builder {
@@ -371,15 +366,36 @@ public class Container implements IContainerListener {
 
     }
 
-    public static void destroy(){
-        container = null;
+    public static void destroy() throws InterruptedException, IOException {
 
-        moduleLoader = null;
-        innerBuilder = null;
+            // unload all modules
+            if (moduleLoader.getAllScriptModules() != null && !moduleLoader.getAllScriptModules().isEmpty()) {
+                Set<ModuleId> _keys = moduleLoader.getAllScriptModules().keySet();
+                for (ModuleId moduleId : _keys) {
+                    try {
+                        moduleLoader.removeScriptModule(moduleId);
+                        moduleMap.remove(moduleId);
+                    } catch (Exception ignore) {
+                    }
+                }
+            }
 
-        srcPath = null;
-        classesPath = null;
-        libsPath = null;
+            container = null;
+
+            moduleLoader = null;
+            innerBuilder = null;
+
+            srcPath = null;
+            classesPath = null;
+            libsPath = null;
+
+            moduleMap.clear();
+
+            pathWatcher.destroy();
+            pathWatcher = null;
+
+            Runtime.getRuntime().gc();
+//        }
     }
 
 }

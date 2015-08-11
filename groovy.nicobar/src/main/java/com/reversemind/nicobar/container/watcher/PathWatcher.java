@@ -1,5 +1,6 @@
 package com.reversemind.nicobar.container.watcher;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.nicobar.core.archive.ModuleId;
 import com.reversemind.nicobar.container.IContainerListener;
 
@@ -7,7 +8,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -19,21 +23,21 @@ import static java.nio.file.StandardWatchEventKinds.*;
  */
 public class PathWatcher {
 
-    private final WatchService watcherService;
-    private final Map<WatchKey, Path> keys;
+    private volatile WatcherThread pathWatcherThread;
+
+    private WatchService watcherService;
+    private Map<WatchKey, Path> keys;
     private boolean trace = false;
 
     private Map<Path, ModuleId> pathModuleIdMap;
-    private final Set<ModuleId> triggeredModules = new HashSet<ModuleId>();
+    private Set<ModuleId> triggeredModules;
 
     private IContainerListener containerListener;
 
-    // TODO it's not optimal solution
-    private ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
-    private ExecutorService watcherThread = Executors.newSingleThreadExecutor();
+    // TODO it's not optimal solution -- ScheduledThreadPoolExecutor
+    private ScheduledExecutorService scheduledThreadPool;
 
-    private boolean isWatch = false;
-    boolean isTriggered = false;
+    boolean isTriggered;
 
     private long watchPeriod;
     private long notifyPeriod;
@@ -42,6 +46,11 @@ public class PathWatcher {
                        long watchPeriod,
                        long notifyPeriod) throws IOException {
 
+        this.isTriggered = false;
+        this.triggeredModules = Collections.synchronizedSet(new HashSet<ModuleId>());
+
+        // https://bugs.openjdk.java.net/browse/JDK-8081063 - WatchService.take() ignores pathWatcherThread interrupt status if a WatchKey is signalled
+        this.scheduledThreadPool = new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder().setNameFormat("pool-notifier-pathWatcherThread-%d").build());
         this.pathModuleIdMap = new ConcurrentHashMap<Path, ModuleId>();
 
         this.watcherService = FileSystems.getDefault().newWatchService();
@@ -53,20 +62,53 @@ public class PathWatcher {
 
         // enable trace after initial registration
         this.trace = true;
-        this.watcherThread.submit(new WatcherThread());
+        this.pathWatcherThread = new WatcherThread(false);
+        this.pathWatcherThread.start();
 
         // TODO it's not optimal solution - what about JGit - use API for git
         this.scheduledThreadPool.scheduleAtFixedRate(new NotifierThread(), notifyPeriod, notifyPeriod, TimeUnit.MILLISECONDS);
     }
 
     public PathWatcher stop() {
-        isWatch = false;
+        this.pathWatcherThread.setIsWatch(false);
         return this;
     }
 
     public PathWatcher start() {
-        isWatch = true;
+        this.pathWatcherThread.setIsWatch(true);
         return this;
+    }
+
+    public void destroy() throws InterruptedException, IOException {
+        this.containerListener = null;
+
+        this.stop();
+        this.pathWatcherThread.setIsWatch(false);
+
+        try{
+            if(this.pathWatcherThread != null){
+                System.out.println("watcher pathWatcherThread:" + pathWatcherThread.getName());
+                this.pathWatcherThread.interrupt();
+            }
+        }catch (Exception ignore){
+            ignore.printStackTrace();
+        }
+
+
+        System.out.println("scheduledThreadPool list:" + this.scheduledThreadPool.shutdownNow());
+        this.scheduledThreadPool.awaitTermination(1, TimeUnit.SECONDS);
+
+        this.watcherService.close();
+        this.watcherService = null;
+
+        this.triggeredModules.clear();
+        this.triggeredModules = null;
+
+        this.keys.clear();
+        this.keys = null;
+
+        this.scheduledThreadPool = null;
+        Runtime.getRuntime().gc();
     }
 
     /**
@@ -118,10 +160,23 @@ public class PathWatcher {
         return (WatchEvent<T>) event;
     }
 
-    public class WatcherThread implements Runnable {
+    public class WatcherThread extends Thread implements Runnable {
+
+        private boolean _isWatch;
+
+        public WatcherThread(boolean isWatch) {
+            this._isWatch = isWatch;
+            this.setName("PATH-WATCHER-THREAD");
+        }
+
+        public void setIsWatch(boolean isWatch) {
+            this._isWatch = isWatch;
+        }
+
+        @Override
         public void run() {
-            while (true) {
-                while (isWatch) {
+            while(!Thread.currentThread().isInterrupted()){
+                while (this._isWatch) {
 
                     // wait for key to be signalled
                     WatchKey key;
@@ -159,9 +214,7 @@ public class PathWatcher {
 
                         // TODO what about new elements?! - need to detect sub path inclusion
                         if (pathModuleIdMap.containsKey(directory)) {
-                            synchronized (triggeredModules) {
-                                triggeredModules.add(pathModuleIdMap.get(directory));
-                            }
+                            triggeredModules.add(pathModuleIdMap.get(directory));
                         }
 
                         /*
@@ -206,6 +259,9 @@ public class PathWatcher {
                     try {
                         Thread.sleep(watchPeriod);
                     } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -217,17 +273,13 @@ public class PathWatcher {
         @Override
         public void run() {
             if (isTriggered) {
-//                log.debug "\n\n////////////////////////////////////////\n" + Thread.currentThread().getName() + " Start. Time = " + new Date();
-                synchronized (triggeredModules) {
-                    if (!triggeredModules.isEmpty()) {
-                        Set<ModuleId> _set = new HashSet<>();
-                        _set.addAll(triggeredModules);
-                        containerListener.changed(_set);
-                        triggeredModules.clear();
-                    }
+                if (!triggeredModules.isEmpty()) {
+                    Set<ModuleId> _set = new HashSet<>();
+                    _set.addAll(triggeredModules);
+                    containerListener.changed(_set);
+                    triggeredModules.clear();
                 }
                 isTriggered = false;
-//                log.debug "\n\n\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n" + Thread.currentThread().getName() + " End. Time = " + new Date();
             }
         }
     }

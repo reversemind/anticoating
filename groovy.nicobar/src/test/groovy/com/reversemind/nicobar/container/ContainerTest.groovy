@@ -110,8 +110,48 @@ class ContainerTest extends Specification {
 
         then:
         log.info "then:"
+
+        container.destroy()
     }
 
+    def 'reinitialize container multiple times'() {
+        setup:
+        log.info "setup:"
+
+        final String BASE_PATH = "src/test/resources/base-path/modules";
+
+        Path srcPath = Paths.get(BASE_PATH, "src").toAbsolutePath();
+        Path classesPath = Paths.get(BASE_PATH, "classes").toAbsolutePath();
+        Path libPath = Paths.get(BASE_PATH, "libs").toAbsolutePath();
+
+        Set<Path> runtimeJars = new HashSet<>();
+        runtimeJars.add(Paths.get("src/test/resources/libs/spock-core-0.7-groovy-2.0.jar").toAbsolutePath())
+
+
+        when:
+        log.info "when:"
+
+        10.times(){
+            TestHelper.resetContainer()
+
+            new Container.Builder(srcPath, classesPath, libPath)
+                    .setRuntimeJarLibs(runtimeJars)
+                    .build()
+
+            Container container = Container.getInstance();
+
+            ModuleId moduleId = ModuleId.create("moduleName", "moduleVersion")
+
+            container.addSrcModuleAndCompile(moduleId, false)
+            container.executeScript(moduleId, "com.company.script")
+
+            container.destroy()
+        }
+
+        then:
+        log.info "then:"
+
+    }
 
     def 'load precompiled modules & compile non precompiled'() {
         setup:
@@ -148,6 +188,8 @@ class ContainerTest extends Specification {
 
         then:
         log.info "then:"
+
+        container.destroy()
     }
 
     @Ignore
@@ -187,6 +229,8 @@ class ContainerTest extends Specification {
 
         then:
         log.info "then:"
+
+        container.destroy()
     }
 
     def 'auto rebuild scripts and reload multithreaded invoke method for class'() {
@@ -251,6 +295,8 @@ class ContainerTest extends Specification {
 
         then:
         log.info "then:"
+
+        container.destroy()
 
     }
 
@@ -318,7 +364,7 @@ class ContainerTest extends Specification {
 
         then:
         log.info "then:"
-
+        container.destroy()
     }
 
     public class ContainerPusher implements Runnable {
@@ -388,7 +434,7 @@ class ContainerTest extends Specification {
 
         TestHelper.replaceContentInFile(filePath.toAbsolutePath().toString(),
                 "return \"ScriptHelper2|\" + string",
-                "return \"ScriptHelper2|thread:${Thread.currentThread().getId()}|${Thread.currentThread().getName()}|\" + string")
+                "return \"ScriptHelper2|pathWatcherThread:${Thread.currentThread().getId()}|${Thread.currentThread().getName()}|\" + string")
 
         then:
         log.info "then:"

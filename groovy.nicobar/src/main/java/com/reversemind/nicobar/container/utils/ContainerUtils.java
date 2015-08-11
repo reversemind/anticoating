@@ -462,7 +462,7 @@ public class ContainerUtils {
     /**
      * Need to make a description for business logic - how to process compiled and src script directories
      * One of the simples solution
-     *
+     * // TODO need to include extra checks for empty modules inside a classes
      * @param classesAtPath -
      * @param sourcesAtPath -
      * @return - Pair<Set<ModuleId>, Set<ModuleId>>
@@ -495,7 +495,7 @@ public class ContainerUtils {
             // #1 detect difference in classes and src
             Set<ModuleId> whatNeedToRemoveForLoadingFromClasses = new HashSet<>(Sets.difference(allClassesModulesSet, allSrcModulesSet));
             Set<ModuleId> whatNeedToCompileInAnyWay = new HashSet<>(Sets.difference(allSrcModulesSet, allClassesModulesSet));
-
+            // TODO need extra checks that module in classes is not empty - means contains any .class files
             if (!whatNeedToRemoveForLoadingFromClasses.isEmpty()) {
                 for (ModuleId _moduleId : whatNeedToRemoveForLoadingFromClasses) {
                     whatToLoad.remove(_moduleId);
