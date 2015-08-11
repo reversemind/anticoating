@@ -117,9 +117,10 @@ class ContainerTest extends Specification {
         setup:
         log.info "setup:"
 
-        TestHelper.mixCompilationOfModule()
-
         final String BASE_PATH = "src/test/resources/base-path-build-module-src-plus-jar";
+
+        TestHelper.mixCompilationOfModule()
+        TestHelper.delete(Paths.get(BASE_PATH, "classes", "moduleNameNoInClasses.moduleVersionNoInClasses"))
 
         Path srcPath = Paths.get(BASE_PATH, "src").toAbsolutePath();
         Path classesPath = Paths.get(BASE_PATH, "classes").toAbsolutePath();
