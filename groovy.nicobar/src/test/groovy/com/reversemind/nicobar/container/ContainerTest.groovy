@@ -114,6 +114,11 @@ class ContainerTest extends Specification {
         container.destroy()
     }
 
+    /**
+     * Actually it's not a right solution to reload a Container - 'cause it's breaks a solid idea about a container as a single instance in
+     * Better to check a stability in case of multiple modules reloads & recompilation
+     */
+    @Ignore
     def 'reinitialize container multiple times'() {
         setup:
         log.info "setup:"
