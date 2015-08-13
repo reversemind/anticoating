@@ -345,7 +345,7 @@ class ContainerTest extends Specification {
             void run() {
 
                 changeByString("script.groovy",
-                        "println \"Date 1:|\"",
+                        "println \"111 22 33 other script:\"",
                         "println \" !!!! CHANGED !!!! :|\"")
 
                 Thread.sleep(1500);
@@ -356,9 +356,9 @@ class ContainerTest extends Specification {
             }
         }, 1, 3, TimeUnit.SECONDS);
 
-        200.times { idx ->
+        1.times { idx ->
             containerCaller.execute(new ContainerPusher(container, moduleId, idx, true));
-            Thread.sleep(10);
+            Thread.sleep(1000);
         }
 
         containerCaller.shutdown()
@@ -391,7 +391,9 @@ class ContainerTest extends Specification {
         @Override
         public void run() {
             if (this.isGroovyScript) {
+                println "before script execution"
                 this.container.executeScript(this.moduleId, "com.company.script")
+                println "after script execution"
                 Date date = new Date();
                 println "index:" + index + "|" + Thread.currentThread().getName() + "|time:" + dateFormat.format(date) + "/stamp:" + date.getTime() + "\n";
             } else {
@@ -483,8 +485,13 @@ class ScriptHelper2 {
     static String initialScriptGroovy = """package com.company
 
 import com.company.subpackage1.*
+import com.company2.packageother.OtherHelper
+import com.other.package10.OtherScript
 
-println "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
+println "111 22 33 other script:" + OtherScript.generate() + " OTHER:" + OtherHelper.doOtherMethod() + "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
+//println "OTHER:" + OtherHelper.doOtherMethod() + "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
+//println "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
+
 """
 
 }
