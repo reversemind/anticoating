@@ -51,15 +51,15 @@ public class Container implements IContainerListener {
         if (moduleId != null) {
             if (!moduleMap.containsKey(moduleId)) {
                 moduleMap.put(moduleId, isSynchronize);
+            }
 
-                // build from source to classes directory
-                ScriptArchive scriptArchive = ContainerUtils.getMixScriptArchiveAtPath(srcPath, moduleId);
-                getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
+            // build from source to classes directory
+            ScriptArchive scriptArchive = ContainerUtils.getMixScriptArchiveAtPath(srcPath, moduleId);
+            getModuleLoader().updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)));
 
-                if (isSynchronize) {
-                    Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
-                    pathWatcher.register(moduleId, modulePath, true);
-                }
+            if (isSynchronize) {
+                Path modulePath = ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath();
+                pathWatcher.register(moduleId, modulePath, true);
             }
         }
         return getInstance();

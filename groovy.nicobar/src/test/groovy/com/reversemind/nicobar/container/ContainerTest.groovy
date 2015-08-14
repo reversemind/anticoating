@@ -197,7 +197,7 @@ class ContainerTest extends Specification {
         container.destroy()
     }
 
-    @Ignore
+//    @Ignore
     def 'by Hand - auto rebuild scripts and reload'() {
         setup:
         log.info "setup:"
@@ -345,7 +345,7 @@ class ContainerTest extends Specification {
             void run() {
 
                 changeByString("script.groovy",
-                        "println \"111 22 33 other script:\"",
+                        "println \"Date 1:|\"",
                         "println \" !!!! CHANGED !!!! :|\"")
 
                 Thread.sleep(1500);
@@ -356,7 +356,7 @@ class ContainerTest extends Specification {
             }
         }, 1, 3, TimeUnit.SECONDS);
 
-        1.times { idx ->
+        100.times { idx ->
             containerCaller.execute(new ContainerPusher(container, moduleId, idx, true));
             Thread.sleep(1000);
         }
@@ -485,13 +485,8 @@ class ScriptHelper2 {
     static String initialScriptGroovy = """package com.company
 
 import com.company.subpackage1.*
-import com.company2.packageother.OtherHelper
-import com.other.package10.OtherScript
 
-println "111 22 33 other script:" + OtherScript.generate() + " OTHER:" + OtherHelper.doOtherMethod() + "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
-//println "OTHER:" + OtherHelper.doOtherMethod() + "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
-//println "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
-
+println "Date 1:|" + ScriptHelper2.getTime() + "| sublevel1:" + Subpackage1Class.method1() + "|" + Thread.currentThread().getName() + "|" + new Date().getTime()
 """
 
 }
