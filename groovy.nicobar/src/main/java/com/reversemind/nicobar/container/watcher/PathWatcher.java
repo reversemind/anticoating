@@ -274,10 +274,11 @@ public class PathWatcher {
         public void run() {
             if (isTriggered) {
                 if (!triggeredModules.isEmpty()) {
-                    Set<ModuleId> _set = new HashSet<>();
+                    Set<ModuleId> _set = new HashSet<>(triggeredModules.size());
                     _set.addAll(triggeredModules);
                     containerListener.changed(_set);
                     triggeredModules.clear();
+                    _set.clear();
                 }
                 isTriggered = false;
             }

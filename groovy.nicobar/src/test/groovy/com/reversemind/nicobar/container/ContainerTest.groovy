@@ -287,7 +287,7 @@ class ContainerTest extends Specification {
             }
         }, 1, 3, TimeUnit.SECONDS);
 
-        200.times { idx ->
+        2000000.times { idx ->
             containerCaller.execute(new ContainerPusher(container, moduleId, idx, false));
             Thread.sleep(10);
         }
@@ -356,9 +356,9 @@ class ContainerTest extends Specification {
             }
         }, 1, 3, TimeUnit.SECONDS);
 
-        100.times { idx ->
+        100000000.times { idx ->
             containerCaller.execute(new ContainerPusher(container, moduleId, idx, true));
-            Thread.sleep(1000);
+            Thread.sleep(10);
         }
 
         containerCaller.shutdown()
@@ -447,7 +447,7 @@ class ContainerTest extends Specification {
         log.info "then:"
     }
 
-    private static void changeByString(String scriptName, String whatReplace, String byString) {
+    protected static void changeByString(String scriptName, String whatReplace, String byString) {
         final String BASE_PATH = "src/test/resources/base-path/modules";
         Path filePath = Paths.get(BASE_PATH, "src", "moduleName.moduleVersion", "com", "company", scriptName).toAbsolutePath();
 
@@ -456,13 +456,13 @@ class ContainerTest extends Specification {
                 byString)
     }
 
-    private static void backToInitialState() {
+    protected static void backToInitialState() {
         final String BASE_PATH = "src/test/resources/base-path/modules";
         Path filePath = Paths.get(BASE_PATH, "src", "moduleName.moduleVersion", "com", "company", "ScriptHelper2.groovy").toAbsolutePath();
         TestHelper.replaceContentInFile(filePath.toAbsolutePath().toString(), initialScriptHelper2groovy);
     }
 
-    private static void backToInitialStateGroovyScript() {
+    protected static void backToInitialStateGroovyScript() {
         final String BASE_PATH = "src/test/resources/base-path/modules";
         Path filePath = Paths.get(BASE_PATH, "src", "moduleName.moduleVersion", "com", "company", "script.groovy").toAbsolutePath();
         TestHelper.replaceContentInFile(filePath.toAbsolutePath().toString(), initialScriptGroovy);
