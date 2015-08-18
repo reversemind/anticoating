@@ -1,0 +1,69 @@
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+group = 'groovy.restlet'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.+'
+    compile 'org.slf4j:slf4j-simple:1.7.+'
+
+    compile 'org.apache.commons:commons-lang3:3.+'
+    compile 'commons-io:commons-io:2.4'
+
+    compile 'org.projectlombok:lombok:1.16.4'
+    compile 'joda-time:joda-time:2.8.1'
+
+    compile 'org.codehaus.groovy:groovy-all:2.3.+'
+    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
+    compile 'org.codehaus.groovy:groovy-json:2.4.+'
+
+    compile 'org.apache.ant:ant:1.9.6'
+
+    compile 'com.google.guava:guava:18.0'
+
+    compile 'org.eclipse.jgit:org.eclipse.jgit:4.0.1.201506240215-r'
+
+    compile 'org.restlet.jee:org.restlet:2.1.1'
+    compile 'org.restlet.jee:org.restlet.ext.spring:2.1.1'
+    compile 'org.restlet.jee:org.restlet.ext.slf4j:2.1.1'
+    compile 'org.restlet.jee:org.restlet.ext.jackson:2.1.1'
+
+    compile 'org.restlet.jee:org.restlet.ext.gson:2.1.1'
+    compile 'org.restlet.jee:org.restlet.ext.crypto:2.1.1'
+    compile 'org.restlet.jee:org.restlet.ext.jaxb:2.1.1'
+    compile 'org.restlet.jee:org.restlet.ext.xml:2.1.1'
+
+//    compile ('org.restlet.jee:org.restlet.ext.spring:2.1.1'){
+//        exclude group: 'org.slf4j', module: 'slf4j-api' //by both name and group
+//    }
+
+    testCompile 'org.mockito:mockito-all:1.10.+'
+    testCompile 'org.testng:testng:6.0.1'
+    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'cglib:cglib:3.1'
+    testCompile 'org.ow2.asm:asm:5.0.3'
+    testCompile 'org.objenesis:objenesis:2.1'
+
+    testCompile 'org.gperfutils:gprof:0.3.0-groovy-2.3'
+}
+
+// force to use Groovy classes inside Java
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDirs += ['src/main/java']
+
+sourceSets.test.java.srcDirs = []
+sourceSets.test.groovy.srcDirs += ['src/test/java']
+println "groovy test directories:${sourceSets.test.groovy.srcDirs}"
+
+test {
+    forkEvery = 1
+    maxParallelForks = 1
+}
