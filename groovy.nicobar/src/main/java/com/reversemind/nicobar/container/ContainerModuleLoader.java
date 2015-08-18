@@ -7,7 +7,6 @@ import com.netflix.nicobar.core.module.*;
 import com.netflix.nicobar.core.module.jboss.JBossModuleUtils;
 import com.netflix.nicobar.core.module.jboss.JBossScriptModule;
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec;
-import com.netflix.nicobar.groovy2.internal.compile.Groovy2CompilerHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
@@ -17,7 +16,10 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
@@ -28,7 +30,7 @@ import java.util.*;
 public class ContainerModuleLoader extends ScriptModuleLoader {
 
     public static class Builder {
-        private final Set<ScriptCompilerPluginSpec> pluginSpecs=  new LinkedHashSet<ScriptCompilerPluginSpec>();
+        private final Set<ScriptCompilerPluginSpec> pluginSpecs = new LinkedHashSet<ScriptCompilerPluginSpec>();
         private final Set<ScriptModuleListener> listeners = new LinkedHashSet<ScriptModuleListener>();
         private final Set<String> paths = new LinkedHashSet<String>();
         private Path compilationRootDir;
@@ -36,15 +38,20 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
 
         public Builder() {
         }
-        /** Add a language compiler plugin specification to the loader */
+
+        /**
+         * Add a language compiler plugin specification to the loader
+         */
         public Builder addPluginSpec(ScriptCompilerPluginSpec pluginSpec) {
             if (pluginSpec != null) {
                 pluginSpecs.add(pluginSpec);
             }
             return this;
         }
+
         /**
          * Use a specific classloader as the application classloader.
+         *
          * @param loader the application classloader
          */
         public Builder withAppClassLoader(ClassLoader loader) {
@@ -52,20 +59,24 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
             this.appClassLoader = loader;
             return this;
         }
+
         /**
          * Use a specific compilation root directory
+         *
          * @param compilationRootDir the compilation directory root.
          */
         public Builder withCompilationRootDir(Path compilationRootDir) {
             this.compilationRootDir = compilationRootDir;
             return this;
         }
+
         /**
          * Specify a set of packages to make available from the application classloader
          * as runtime dependencies for all scripts loaded by this script module.
+         *
          * @param incomingPaths a set of / separated package paths. No wildcards.
-         *        e.g. Specifying com/foo/bar/baz implies that all classes in packages
-         *        named com.foo.bar.baz.* will be visible to loaded modules.
+         *                      e.g. Specifying com/foo/bar/baz implies that all classes in packages
+         *                      named com.foo.bar.baz.* will be visible to loaded modules.
          */
         public Builder addAppPackages(Set<String> incomingPaths) {
             if (incomingPaths != null) {
@@ -73,13 +84,17 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
             }
             return this;
         }
-        /** Add a archive poller which will be polled at the given interval */
+
+        /**
+         * Add a archive poller which will be polled at the given interval
+         */
         public Builder addListener(ScriptModuleListener listener) {
             if (listener != null) {
                 listeners.add(listener);
             }
             return this;
         }
+
         public ContainerModuleLoader build() throws ModuleLoadException, IOException {
             if (compilationRootDir == null) {
                 compilationRootDir = Files.createTempDirectory("ContainerModuleLoader");
@@ -99,22 +114,22 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
      * dependency graph. It will then recursively re-link any modules depending on the new modules.
      * If this loader already contains an old version of the module, it will be unloaded on
      * successful compile of the new module.
-     *
+     * <p>
      * Difference vs ScriptModuleLoader is to reorder a directory for compiled classes from .groovy files
      *
      * @param candidateArchives archives to load or update
      */
     @Override
-    public synchronized void updateScriptArchives(Set<? extends ScriptArchive> candidateArchives)  {
+    public synchronized void updateScriptArchives(Set<? extends ScriptArchive> candidateArchives) {
         Objects.requireNonNull(candidateArchives);
         long updateNumber = System.currentTimeMillis();
 
         // map script module id to archive to be compiled
-        Map<ModuleId, ScriptArchive> archivesToCompile = new HashMap<ModuleId, ScriptArchive>(candidateArchives.size()*2);
+        Map<ModuleId, ScriptArchive> archivesToCompile = new HashMap<ModuleId, ScriptArchive>(candidateArchives.size() * 2);
 
         // create an updated mapping of the scriptModuleId to latest revisionId including the yet-to-be-compiled archives
         Map<ModuleId, ModuleIdentifier> oldRevisionIdMap = jbossModuleLoader.getLatestRevisionIds();
-        Map<ModuleId, ModuleIdentifier> updatedRevisionIdMap = new HashMap<ModuleId, ModuleIdentifier>((oldRevisionIdMap.size()+candidateArchives.size())*2);
+        Map<ModuleId, ModuleIdentifier> updatedRevisionIdMap = new HashMap<ModuleId, ModuleIdentifier>((oldRevisionIdMap.size() + candidateArchives.size()) * 2);
         updatedRevisionIdMap.putAll(oldRevisionIdMap);
 
         // Map of the scriptModuleId to it's updated set of dependencies
@@ -175,6 +190,8 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
                     continue;
                 }
 
+                System.out.println("\n\n\n moduleSpec:" + moduleSpec + ":" + moduleSpec.getModuleIdentifier().toString() + "   \n\n");
+
                 // load and compile the module
                 jbossModuleLoader.addModuleSpec(moduleSpec);
                 Module jbossModule = null;
@@ -195,9 +212,11 @@ public class ContainerModuleLoader extends ScriptModuleLoader {
                                 classesToLoad.add(className);
                             }
                             return FileVisitResult.CONTINUE;
-                        };
+                        }
+
+                        ;
                     });
-                    for (String loadClass: classesToLoad) {
+                    for (String loadClass : classesToLoad) {
                         Class<?> loadedClass = jbossModule.getClassLoader().loadClassLocal(loadClass, true);
                         if (loadedClass == null)
                             throw new ScriptCompilationException("Unable to load compiled class: " + loadClass);

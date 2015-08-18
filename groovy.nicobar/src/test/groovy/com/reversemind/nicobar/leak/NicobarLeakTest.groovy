@@ -4,11 +4,11 @@ import com.netflix.nicobar.core.archive.PathScriptArchive
 import com.netflix.nicobar.core.archive.ScriptArchive
 import com.netflix.nicobar.core.archive.ScriptModuleSpec
 import com.netflix.nicobar.core.module.ScriptModule
-import com.netflix.nicobar.core.module.ScriptModuleLoader
 import com.netflix.nicobar.core.module.ScriptModuleUtils
 import com.netflix.nicobar.core.plugin.BytecodeLoadingPlugin
 import com.netflix.nicobar.core.plugin.ScriptCompilerPluginSpec
 import com.netflix.nicobar.groovy2.plugin.Groovy2CompilerPlugin
+import com.reversemind.nicobar.container.ContainerModuleLoader
 import com.reversemind.nicobar.container.ContainerTest
 import com.reversemind.nicobar.container.GroovyScriptInvokerHelper
 import com.reversemind.nicobar.container.TestHelper
@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit
  */
 @Slf4j
 class NicobarLeakTest extends ContainerTest{
+
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
     def 'pure test - Nicobar libs - auto rebuild scripts and reload multithreaded run script'(){
         setup:
@@ -49,11 +51,18 @@ class NicobarLeakTest extends ContainerTest{
         ScriptCompilerPluginSpec byteCodeCompilerPluginSpec = ContainerUtils.buildByteCodeCompilerPluginSpec(runtimeJars);
 
         // create and start the builder with the plugin
-        ScriptModuleLoader scriptModuleLoader = new ScriptModuleLoader.Builder()
+//        ScriptModuleLoader scriptModuleLoader = new ScriptModuleLoader.Builder()
+//                .addPluginSpec(groovy2CompilerPluginSpec)
+//                .addPluginSpec(byteCodeCompilerPluginSpec)
+//                .withCompilationRootDir(classesPath)
+//                .build();
+
+        ContainerModuleLoader scriptModuleLoader = new ContainerModuleLoader.Builder()
                 .addPluginSpec(groovy2CompilerPluginSpec)
                 .addPluginSpec(byteCodeCompilerPluginSpec)
                 .withCompilationRootDir(classesPath)
                 .build();
+
 
         when:
         log.info "when:"
@@ -64,19 +73,20 @@ class NicobarLeakTest extends ContainerTest{
 
 
 
+        ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
+                .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
+                .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
+                .build();
+
+        ScriptArchive scriptArchive = new PathScriptArchive.Builder(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath())
+                .setRecurseRoot(true)
+                .setModuleSpec(moduleSpec)
+                .build();
+
+
         scheduledThreadPool.scheduleAtFixedRate(new Runnable() {
             @Override
             void run() {
-
-                ScriptModuleSpec moduleSpec = new ScriptModuleSpec.Builder(moduleId)
-                        .addCompilerPluginId(BytecodeLoadingPlugin.PLUGIN_ID)
-                        .addCompilerPluginId(Groovy2CompilerPlugin.PLUGIN_ID)
-                        .build();
-
-                ScriptArchive scriptArchive = new PathScriptArchive.Builder(ContainerUtils.getModulePath(srcPath, moduleId).toAbsolutePath())
-                        .setRecurseRoot(true)
-                        .setModuleSpec(moduleSpec)
-                        .build();
 
                 changeByString("script.groovy",
                         "println \"Date 1:|\"",
@@ -91,50 +101,112 @@ class NicobarLeakTest extends ContainerTest{
             }
         }, 1, 3, TimeUnit.SECONDS);
 
-        100000000.times { idx ->
-            containerCaller.execute(new ScriptModulePusher(scriptModuleLoader, moduleId, idx));
+
+
+//        1500.times { idx ->
+        200000000.times { idx ->
+            containerCaller.execute( new Runnable() {
+                @Override
+                public void run() {
+                    println "before script execution"
+                    final ScriptModule scriptModule = scriptModuleLoader.getScriptModule(moduleId);
+                    if (scriptModule != null) {
+
+                        Class clazz = ScriptModuleUtils.findClass(scriptModule, "com.company.script");
+                        if (clazz != null) {
+                            try {
+                                GroovyScriptInvokerHelper.runGroovyScript(clazz);
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    }
+
+                    println "after script execution"
+                    Date date = new Date();
+                    println "index:" + idx + "|" + Thread.currentThread().getName() + "|time:" + dateFormat.format(date) + "/stamp:" + date.getTime() + "\n";
+
+                    Thread.sleep(100);
+                }
+            });
             Thread.sleep(10);
         }
+
+
+        /*
+
+            No-threads
+
+         */
+//        changeByString("script.groovy",
+//                "println \"Date 1:|\"",
+//                "println \" !!!! CHANGED !!!! :|\"")
+//
+//        Thread.sleep(1500);
+//        scriptModuleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)))
+//
+//        backToInitialStateGroovyScript();
+//        Thread.sleep(1500);
+//        scriptModuleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)))
+//
+//
+//        ScriptModule scriptModule = scriptModuleLoader.getScriptModule(moduleId);
+//        if (scriptModule != null) {
+//
+//            Class clazz = ScriptModuleUtils.findClass(scriptModule, "com.company.script");
+//            if (clazz != null) {
+//                try {
+//                    GroovyScriptInvokerHelper.runGroovyScript(clazz);
+//                } catch (Exception ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
+//        }
+//
+//        println "after script execution"
+//        Date date = new Date();
+//        println "index:" + 1 + "|" + Thread.currentThread().getName() + "|time:" + dateFormat.format(date) + "/stamp:" + date.getTime() + "\n";
+//
+//        Thread.sleep(100);
+
+
+
+        // call it again - for debugging purpose
+
+        changeByString("script.groovy",
+                "println \"Date 1:|\"",
+                "println \" !!!! CHANGED !!!! :|\"")
+
+        Thread.sleep(1500);
+        scriptModuleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)))
+
+        backToInitialStateGroovyScript();
+        Thread.sleep(1500);
+        scriptModuleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)))
+
+
+        ScriptModule scriptModule = scriptModuleLoader.getScriptModule(moduleId);
+        if (scriptModule != null) {
+
+            Class clazz = ScriptModuleUtils.findClass(scriptModule, "com.company.script");
+            if (clazz != null) {
+                try {
+                    GroovyScriptInvokerHelper.runGroovyScript(clazz);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+        println "after script execution"
+
+        Thread.sleep(100);
+
+
+
 
         then:
         log.info "then:"
     }
 
-    public class ScriptModulePusher implements Runnable {
-
-        private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-
-        private ScriptModuleLoader scriptModuleLoader;
-        private ModuleId moduleId;
-        private long index;
-
-        ScriptModulePusher(ScriptModuleLoader scriptModuleLoader, ModuleId moduleId, long index) {
-            this.scriptModuleLoader = scriptModuleLoader
-            this.moduleId = moduleId
-            this.index = index;
-        }
-
-        @Override
-        public void run() {
-            println "before script execution"
-            final ScriptModule scriptModule = this.scriptModuleLoader.getScriptModule(this.moduleId);
-            if (scriptModule != null) {
-
-                Class clazz = ScriptModuleUtils.findClass(scriptModule, "com.company.script");
-                if (clazz != null) {
-                    try {
-                        GroovyScriptInvokerHelper.runGroovyScript(clazz);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-
-            println "after script execution"
-            Date date = new Date();
-            println "index:" + index + "|" + Thread.currentThread().getName() + "|time:" + dateFormat.format(date) + "/stamp:" + date.getTime() + "\n";
-
-            Thread.sleep(100);
-        }
-    }
 }
