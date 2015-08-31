@@ -203,8 +203,6 @@ class NicobarLeakTest extends ContainerTest{
         Thread.sleep(100);
 
 
-
-
         then:
         log.info "then:"
     }
