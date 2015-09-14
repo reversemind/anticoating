@@ -1,4 +1,5 @@
 package com.reversemind.nicobar.leak
+
 import com.netflix.nicobar.core.archive.ModuleId
 import com.netflix.nicobar.core.archive.PathScriptArchive
 import com.netflix.nicobar.core.archive.ScriptArchive
@@ -141,6 +142,7 @@ class NicobarLeakTest extends ContainerTest{
 //        changeByString("script.groovy",
 //                "println \"Date 1:|\"",
 //                "println \" !!!! CHANGED !!!! :|\"")
+//
 //
 //        Thread.sleep(1500);
 //        scriptModuleLoader.updateScriptArchives(new LinkedHashSet<ScriptArchive>(Arrays.asList(scriptArchive)))
