@@ -192,6 +192,33 @@ public class Container implements IContainerListener {
         return getInstance();
     }
 
+    public Container compileModulesAtStart() throws IOException {
+
+        // TODO implements logic about number of modules in classes & src sub dirs
+        // TODO compare modules compiled and src file - may be via special hash function - like git
+
+        Set<ModuleId> modulesToCompile = ContainerUtils.getModuleIdListAtPath(srcPath);
+
+        long beginTime = System.currentTimeMillis();
+
+        // TODO migrate to log
+        System.out.println("Started compiling modules from source at:" + new Date(beginTime) + " timestamp:" + beginTime);
+
+        if (modulesToCompile != null && !modulesToCompile.isEmpty()) {
+
+            for (ModuleId moduleId : modulesToCompile) {
+                // TODO logging
+                System.out.println("Compile module:" + moduleId);
+                this.addSrcModuleAndCompile(moduleId, true);
+            }
+        }
+
+        // TODO migrate to log
+        System.out.println("Compiled modules from src for:" + (System.currentTimeMillis() - beginTime) + " ms");
+
+        return getInstance();
+    }
+
     public Container executeScript(ModuleId moduleId, String scriptName) {
         final ScriptModule scriptModule = getModuleLoader().getScriptModule(moduleId);
         if (scriptModule != null) {
