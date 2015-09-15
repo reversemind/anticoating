@@ -22,6 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class Container implements IContainerListener {
 
+    public static final String PATH_SRC = "src";
+    public static final String PATH_CLASSES = "classes";
+    public static final String PATH_LIBS = "libs";
+    public static final String PATH_RUNTIME_LIBS = "runtime_libs";
+
     private static Container container;
 //    private final static Object lock = new Object();
 
