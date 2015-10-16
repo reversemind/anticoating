@@ -24,9 +24,9 @@ object Main extends App with RequestTimeout with ShutdownIfNotBound{
   val port = Try(config.getInt("http.port")).getOrElse(8080)
 
   implicit val timeout = requestTimeout(config)
-  val api = system.actorOf(Props(new RestApiActor(timeout)), "httpInterface")
+  val apiService = system.actorOf(Props(new RestApiActor(timeout)), "httpInterface")
 
-  val response = IO(Http).ask(Http.Bind(listener = api, interface = host, port = port))
+  val response = IO(Http).ask(Http.Bind(listener = apiService, interface = host, port = port))
   shutdownIfNotBound(response)
 }
 

@@ -10,30 +10,37 @@ import StatusCodes._
  *
  */
 class RestApiSpec extends Specification with Specs2RouteTest with RestApi {
+
   override implicit def actorRefFactory = system
 
   "The RestApi" should {
 
-    "return a default for GET requests to the root path" in {
-      Get() ~> restRoute ~> check { responseAs[String] must contain("VALUE") }
+    "return a 'DEFAULT_GET_VALUE' for GET requests to the root path" in {
+      Get() ~> rootRoute ~> check { responseAs[String] must contain("DEFAULT_GET_VALUE") }
     }
 
-    "return a 'VALUE' response for GET requests to /entity/VALUE" in {
-      Get("entity/VALUE") ~> restRoute ~> check { responseAs[String] === "VALUE" }
+    "return a 'DEFAULT_POST_VALUE' response for POST requests to the root path" in {
+      Post() ~> rootRoute ~> check { responseAs[String] === "DEFAULT_POST_VALUE" }
     }
 
-//    "leave GET requests to other paths unhandled" in {
-//      Get("/kermit") ~> demoRoute ~> check { handled must beFalse }
-//    }
+    "return a 'get:DEFAULT' response for GET requests to /value/DEFAULT" in {
+      Get("/value/DEFAULT") ~> rootRoute ~> check { responseAs[String] === "get:DEFAULT" }
+    }
 
-//    //# source-quote (for the documentation site)
-//    "return a MethodNotAllowed error for PUT requests to the root path" in {
-//      Put() ~> sealRoute(demoRoute) ~> check {
-//        status === MethodNotAllowed
-//        responseAs[String] === "HTTP method not allowed, supported methods: GET, POST"
-//      }
-//    }
+    "leave GET requests to other paths unhandled" in {
+      Get("/unhandledPath") ~> rootRoute ~> check { handled must beFalse }
+    }
 
-    //#
+    "return a MethodNotAllowed error for HEAD requests to the root path" in {
+      Head() ~> sealRoute(rootRoute) ~> check {
+        status === MethodNotAllowed
+        responseAs[String] === "HTTP method not allowed, supported methods: GET, POST, PUT"
+      }
+    }
+
+    "shutdown a service for PUT request to /stop" in {
+      Put("/stop") ~> rootRoute ~> check{ responseAs[String] === "Shutting down in 1 second..."}
+    }
+
   }
 }
