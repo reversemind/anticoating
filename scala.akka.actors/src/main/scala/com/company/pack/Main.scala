@@ -1,7 +1,9 @@
 package com.company.pack
 
 import akka.actor.{ActorSystem, Props}
+import akka.io.IO
 import akka.util.Timeout
+import akka.pattern.ask
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
@@ -20,10 +22,11 @@ object Main extends App with RequestTimeout with ShutdownIfNotBound with LazyLog
   val host = config.getString("http.host")
   val port = config.getInt("http.port")
 
-  val _t = requestTimeout(config)
-  implicit val requestTimeout = FiniteDuration(Duration(_t).length, Duration(_t).unit)
-
+  val requestTimeout = requestTimeout(config)
   val api = system.actorOf(Props(new RestApi(requestTimeout)), "httpInterface")
+
+  val response = IO(Http).ask(Http.Bind(listener = api, interface = host, port = port))
+  shutdownIfNotBound(response)
 }
 
 trait RequestTimeout {
