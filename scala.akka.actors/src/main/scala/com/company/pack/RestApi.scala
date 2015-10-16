@@ -1,15 +1,36 @@
 package com.company.pack
 
-import akka.actor.Actor.Receive
+import akka.actor.ActorLogging
 import akka.util.Timeout
-import spray.routing.HttpServiceActor
+import com.typesafe.scalalogging.LazyLogging
+import spray.routing.{HttpService, HttpServiceActor}
 
 /**
  *
  */
-class RestApi(_requestTimeout: Timeout) extends HttpServiceActor{
+class RestApiActor(_requestTimeout: Timeout) extends HttpServiceActor with RestApi with ActorLogging {
 
   implicit val requestTimeout = _requestTimeout
 
-  def receive = runRoute(null)
+  def receive = runRoute(restRoute)
 }
+
+trait RestApi extends HttpService with LazyLogging{
+  val restRoute = {
+    path("entity" / Segment) { id =>
+      logger.info(s"input value:$id")
+      get {
+        pathSingleSlash {
+          complete(s"get:$id")
+        } ~
+          path("ping") {
+            complete("PONG!")
+          }
+      } ~
+      post {
+        complete(s"post:$id")
+      }
+    }
+  }
+}
+

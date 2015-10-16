@@ -50,6 +50,10 @@ dependencies {
     }
     compile "org.springframework.scala:spring-scala_2.10:$springScalaVer"
 
+    testCompile 'io.spray:spray-testkit_2.11:1.3.3'
+//    testCompile 'org.specs2:specs2_2.11:3.3.1'
+    testCompile 'org.specs2:specs2-core_2.11:2.3.13'
+//    testCompile 'org.specs2:specs2-tests_2.11:3.6.5'
     testCompile 'org.scala-lang:scala-library:2.11.7'
 }
 

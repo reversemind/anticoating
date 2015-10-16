@@ -9,21 +9,22 @@ import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.Try
 
 /**
  *
  */
-object Main extends App with RequestTimeout with ShutdownIfNotBound with LazyLogging {
+object Main extends App with RequestTimeout with ShutdownIfNotBound{
 
   implicit val system = ActorSystem("ScalaActorExplorer")
   implicit val executionContext = system.dispatcher
 
   val config = ConfigFactory.load()
-  val host = config.getString("http.host")
-  val port = config.getInt("http.port")
+  val host = Try(config.getString("http.host")).getOrElse("127.0.0.1")
+  val port = Try(config.getInt("http.port")).getOrElse(8080)
 
-  val requestTimeout = requestTimeout(config)
-  val api = system.actorOf(Props(new RestApi(requestTimeout)), "httpInterface")
+  implicit val timeout = requestTimeout(config)
+  val api = system.actorOf(Props(new RestApiActor(timeout)), "httpInterface")
 
   val response = IO(Http).ask(Http.Bind(listener = api, interface = host, port = port))
   shutdownIfNotBound(response)
