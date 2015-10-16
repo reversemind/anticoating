@@ -1,0 +1,65 @@
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://repo.akka.io/snapshots/"
+    }
+}
+
+ext {
+    scala = '2.11.7'
+    groovy = '2.4.3'
+    slf = '1.7.7'
+    logbackVersion = '1.1.3'
+    scalaloggingVersion = '3.1.0'
+    junit = '4.12'
+    scalaTest = '2.2.4'
+
+    akkaVersion = '2.3.10'
+    sprayVersion = '1.3.3'
+    springBootVer = '1.2.5.RELEASE'
+    springScalaVer = '1.0.0.RC1'
+}
+
+dependencies {
+
+    compile "io.spray:spray-io_2.11:$sprayVersion"
+
+    compile "org.scala-lang:scala-compiler:$scala"
+    compile "org.scala-lang:scala-library:$scala"
+    compile "com.typesafe.akka:akka-actor_2.11:$akkaVersion"
+
+    compile "io.spray:spray-can_2.11:$sprayVersion"
+    compile "io.spray:spray-routing_2.11:$sprayVersion"
+    compile "io.spray:spray-json_2.11:1.3.2"
+
+    compile "org.slf4j:slf4j-api:$slf"
+    compile "com.typesafe.scala-logging:scala-logging_2.11:$scalaloggingVersion"
+    compile "org.slf4j:jcl-over-slf4j:$slf"
+    runtime "ch.qos.logback:logback-classic:$logbackVersion"
+
+    // Spring Boot
+    ['spring-boot-starter-web', 'spring-boot-starter-amqp'].each {
+        compile "org.springframework.boot:$it:$springBootVer"
+    }
+    compile "org.springframework.scala:spring-scala_2.10:$springScalaVer"
+
+    testCompile 'org.scala-lang:scala-library:2.11.7'
+}
+
+tasks.withType(ScalaCompile) {
+    targetCompatibility = 1.8
+
+    scalaCompileOptions.useAnt = false
+    scalaCompileOptions.unchecked = true
+    scalaCompileOptions.optimize = true
+
+    // Enable Scala warnings output
+    scalaCompileOptions.additionalParameters = ["-feature"]
+}
