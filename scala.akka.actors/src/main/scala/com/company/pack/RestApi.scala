@@ -48,11 +48,14 @@ trait RestApi extends HttpService with LazyLogging {
               entity(as[MultipartFormData]) { formData =>
 //                detachTo(singleRequestServiceActor) {
                   complete {
+                    logger.info("===" + formData.fields.seq.head.headers)
+
                     val details = formData.fields.map {
                       case (BodyPart(entity, headers)) =>
                         //val content = entity.buffer
                         val content = new ByteArrayInputStream(entity.data.toByteArray)
                         val contentType = "NONE";//Option(headers.find(h => h.is("Content-Type")).get.value).getOrElse("NO-TYPE")
+//                        val fileName = headers.find(h => h.is("Content-Disposition")).get.value.split("filename=").last
                         val fileName = headers.find(h => h.is("Content-Disposition")).get.value.split("filename=").last
 
                         logger.info(s"size:$entity.data.length")
