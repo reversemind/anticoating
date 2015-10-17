@@ -28,7 +28,7 @@ object ClientFileUpload extends App {
 
   generateFile(fileName, 100)
   val payload = MultipartFormData(Seq(BodyPart(fileName.toFile, "file", MediaTypes.`multipart/form-data`)))
-  val request = Post(s"http://$host:$port/file", payload)
+  val request = Post(s"http://$host:$port/upload", payload)
 
   pipeline(request).onComplete { res =>
     println(res)
@@ -46,8 +46,10 @@ object ClientFileUpload extends App {
     val file: File = filePath.toAbsolutePath.toFile
     System.out.println(filePath.toAbsolutePath.toString)
     val bufferedOutputStream: BufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file))
+
     val random: Random = new Random
-    val bytes1Kb: Array[Byte] = Array(1024) {
+    val bytes1Kb: Array[Byte] = new Array[Byte](1024)
+
       var i: Long = 0
       while (i < size) {
         {
@@ -56,10 +58,10 @@ object ClientFileUpload extends App {
         }
         {
           i += 1
-          i - 1
         }
       }
-    }
+
+
     bufferedOutputStream.flush()
     bufferedOutputStream.close()
     file

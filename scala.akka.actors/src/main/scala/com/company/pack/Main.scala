@@ -16,15 +16,15 @@ import scala.util.Try
  */
 object Main extends App with RequestTimeout with ShutdownIfNotBound{
 
-  implicit val system = ActorSystem("ScalaActorExplorer")
-  implicit val executionContext = system.dispatcher
+  implicit val actorSystem = ActorSystem("ScalaActorExplorer")
+  implicit val executionContext = actorSystem.dispatcher
 
   val config = ConfigFactory.load()
   val host = Try(config.getString("http.host")).getOrElse("127.0.0.1")
   val port = Try(config.getInt("http.port")).getOrElse(8080)
 
   implicit val timeout = requestTimeout(config)
-  val apiService = system.actorOf(Props(new RestApiActor(timeout)), "httpInterface")
+  val apiService = actorSystem.actorOf(Props(new RestApiActor(timeout)), "httpInterface")
 
   val response = IO(Http).ask(Http.Bind(listener = apiService, interface = host, port = port))
   shutdownIfNotBound(response)
