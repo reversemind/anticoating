@@ -23,6 +23,8 @@ object Main extends App with RequestTimeout with ShutdownIfNotBound{
   val host = Try(config.getString("http.host")).getOrElse("127.0.0.1")
   val port = Try(config.getInt("http.port")).getOrElse(8080)
 
+  implicit val requestChunkAggregationLimit = config.getString("spray.can.server.request-chunk-aggregation-limit")
+
   implicit val timeout = requestTimeout(config)
   val apiService = actorSystem.actorOf(Props(new RestApiActor(timeout)), "httpInterface")
 

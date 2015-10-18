@@ -1,15 +1,14 @@
 package com.company.pack
 
+import java.io.{ByteArrayInputStream, InputStream, OutputStream}
+import java.nio.file.Paths
+
 import akka.actor.ActorLogging
 import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
 import spray.http.MediaTypes._
-import spray.http.MultipartFormData
+import spray.http.{HttpData, BodyPart, MultipartFormData}
 import spray.routing.{HttpService, HttpServiceActor}
-import spray.http._
-import spray.routing._
-import spray.http.BodyPart
-import java.io.{ ByteArrayInputStream, InputStream, OutputStream }
 
 /**
  *
@@ -46,29 +45,29 @@ trait RestApi extends HttpService with LazyLogging {
           path("upload") {
             respondWithMediaType(`application/json`) {
               entity(as[MultipartFormData]) { formData =>
-//                detachTo(singleRequestServiceActor) {
-                  complete {
-                    logger.info("===" + formData.fields.seq.head.headers)
+                //                detach(singleRequestServiceActor) {
+                complete {
+                  logger.info("===" + formData.fields.seq.head.headers)
 
-                    val details = formData.fields.map {
-                      case (BodyPart(entity, headers)) =>
-                        //val content = entity.buffer
-                        val content = new ByteArrayInputStream(entity.data.toByteArray)
-                        val contentType = "NONE";//Option(headers.find(h => h.is("Content-Type")).get.value).getOrElse("NO-TYPE")
-//                        val fileName = headers.find(h => h.is("Content-Disposition")).get.value.split("filename=").last
-                        val fileName = headers.find(h => h.is("Content-Disposition")).get.value.split("filename=").last
+                  val details = formData.fields.map {
+                    case (BodyPart(entity, headers)) =>
+                      // What about InputStream
+                      val content = new ByteArrayInputStream(entity.data.toByteArray)
+                      val fileName = headers.find(h => h.is("content-disposition")).get.value.split("filename=").last
 
-                        logger.info(s"size:$entity.data.length")
-                        logger.info(s"contentType:$contentType")
-                        logger.info(s"Find a file name:$fileName")
+                      logger.info(s"size:$entity.data.length")
+                      logger.info(s"Find a file name:$fileName")
 
-                        val result = true;//saveAttachment(fileName, content)
-                        (contentType, fileName, result)
-                      case _ =>
-                    }
-                    s"""{"status": "Processed POST request, details=$details" }"""
+                      val pathFileName = Paths.get("/tmp").resolve(fileName).toAbsolutePath.toString
+
+                      // 10mb
+                      val result = saveAttachment(pathFileName, entity.data.toChunkStream(10 * 1024 * 1024))
+                      (fileName, result)
+                    case _ =>
                   }
-//                }
+                  s"""{"status": "Processed POST request, details=$details" }"""
+                  //                  }
+                }
               }
             }
 
@@ -85,50 +84,39 @@ trait RestApi extends HttpService with LazyLogging {
       }
 
   }
-//
-//
-//  private def saveAttachment(fileName: String, content: Array[Byte]): Boolean = {
-//    saveAttachment[Array[Byte]](fileName, content, {(is, os) => os.write(is)})
-//    true
-//  }
-//
-//  private def saveAttachment(fileName: String, content: InputStream): Boolean = {
-//    saveAttachment[InputStream](fileName, content,
-//    { (is, os) =>
-//      val buffer = new Array[Byte](16384)
-//      Iterator
-//        .continually (is.read(buffer))
-//        .takeWhile (-1 !=)
-//        .foreach (read=>os.write(buffer,0,read))
-//    }
-//    )
-//  }
-//
-//  private def saveAttachment[T](fileName: String, content: T, writeFile: (T, OutputStream) => Unit): Boolean = {
-//    try {
-//      val fos = new java.io.FileOutputStream(fileName)
-//      writeFile(content, fos)
-//      fos.close()
-//      true
-//    } catch {
-//      case _ => false
-//    }
-//  }
+
+  private def saveAttachment(fileName: String, content: Stream[HttpData]): Boolean = {
+    saveAttachment[Stream[HttpData]](fileName, content, {(is, os) => os.write(is.head.toByteArray)})
+    true
+  }
+
+  private def saveAttachment(fileName: String, content: Array[Byte]): Boolean = {
+    saveAttachment[Array[Byte]](fileName, content, {(is, os) => os.write(is)})
+    true
+  }
+
+  private def saveAttachment(fileName: String, content: InputStream): Boolean = {
+    saveAttachment[InputStream](fileName, content,
+    { (is, os) =>
+      val buffer = new Array[Byte](16384)
+      Iterator
+        .continually (is.read(buffer))
+        .takeWhile (-1 !=)
+        .foreach (read=>os.write(buffer,0,read))
+    }
+    )
+  }
+
+  private def saveAttachment[T](fileName: String, content: T, writeFile: (T, OutputStream) => Unit): Boolean = {
+    try {
+      val fos = new java.io.FileOutputStream(fileName)
+      writeFile(content, fos)
+      fos.close()
+      true
+    } catch {
+      case _ => false
+    }
+  }
 }
 
-
-//            entity(as[MultipartFormData]) { data =>
-//              logger.info("Inside multipart")
-//              complete {
-//                data.fields.get("files[]") match {
-//                  case Some(imageEntity) =>
-//                    val size = imageEntity.entity.buffer.length
-//                    logger.info(s"Uploaded $size")
-//                    "OK"
-//                  case None =>
-//                    logger.info("No files")
-//                    "Not OK"
-//                }
-//              }
-//            }
 
