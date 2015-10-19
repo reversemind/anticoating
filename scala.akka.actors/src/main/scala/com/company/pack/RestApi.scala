@@ -13,11 +13,12 @@ import spray.routing.{HttpService, HttpServiceActor}
 /**
  *
  */
-class RestApiActor(_requestTimeout: Timeout) extends HttpServiceActor with RestApi with ActorLogging {
+class RestApiActor(_requestTimeout: Timeout)(implicit _requestChunkAggregationLimit: Long) extends HttpServiceActor with RestApi with ActorLogging {
 
   override def actorRefFactory = context
 
   implicit val requestTimeout = _requestTimeout
+  implicit val maxChunkSize = _requestChunkAggregationLimit
 
   def receive = runRoute(rootRoute)
 }
@@ -26,6 +27,7 @@ trait RestApi extends HttpService with LazyLogging {
 
   // we use the enclosing ActorContext's or ActorSystem's dispatcher for our Futures and Scheduler
   implicit def executionContext = actorRefFactory.dispatcher
+  protected[this] implicit val maxChunkSize: Long
 
   // catch exceptions - https://github.com/eigengo/activator-akka-spray/blob/master/src%2Fmain%2Fscala%2Fapi%2Fservices.scala
 
@@ -51,8 +53,7 @@ trait RestApi extends HttpService with LazyLogging {
 
                   val details = formData.fields.map {
                     case (BodyPart(entity, headers)) =>
-                      // What about InputStream
-                      val content = new ByteArrayInputStream(entity.data.toByteArray)
+
                       val fileName = headers.find(h => h.is("content-disposition")).get.value.split("filename=").last
 
                       logger.info(s"size:$entity.data.length")
@@ -61,7 +62,7 @@ trait RestApi extends HttpService with LazyLogging {
                       val pathFileName = Paths.get("/tmp").resolve(fileName).toAbsolutePath.toString
 
                       // 10mb
-                      val result = saveAttachment(pathFileName, entity.data.toChunkStream(10 * 1024 * 1024))
+                      val result = saveAttachment(pathFileName, entity.data.toChunkStream(maxChunkSize))
                       (fileName, result)
                     case _ =>
                   }

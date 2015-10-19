@@ -43,4 +43,5 @@ class RestApiSpec extends Specification with Specs2RouteTest with RestApi {
     }
 
   }
+  override protected[this] implicit val maxChunkSize: Long = 10 * 1024 * 1024
 }
