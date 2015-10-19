@@ -5,11 +5,12 @@ import akka.io.IO
 import akka.pattern.ask
 import com.typesafe.scalalogging.LazyLogging
 import spray.can.Http
+import com.company.config.Configuration
 
 /**
  *
  */
-object Main extends App with ShutdownIfNotBound with com.company.config.Configuration {
+object Main extends App with ShutdownIfNotBound with Configuration {
 
   implicit val actorSystem = ActorSystem("ScalaActorExplorer")
   implicit val executionContext = actorSystem.dispatcher

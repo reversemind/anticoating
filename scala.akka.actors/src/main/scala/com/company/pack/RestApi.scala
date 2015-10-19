@@ -1,6 +1,6 @@
 package com.company.pack
 
-import java.io.{ByteArrayInputStream, InputStream, OutputStream}
+import java.io.{InputStream, OutputStream}
 import java.nio.file.Paths
 
 import akka.actor.ActorLogging
@@ -50,6 +50,9 @@ trait RestApi extends HttpService with LazyLogging {
                 //                detach(singleRequestServiceActor) {
                 complete {
                   logger.info("===" + formData.fields.seq.head.headers)
+
+                  val taskId = formData.get("taskId")
+                  logger.info(s"taskId:$taskId")
 
                   val details = formData.fields.map {
                     case (BodyPart(entity, headers)) =>
