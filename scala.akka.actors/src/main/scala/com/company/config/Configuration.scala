@@ -8,13 +8,14 @@ import scala.util.Try
 /**
  *
  */
-trait Configuration extends RequestTimeout{
+trait Configuration extends RequestTimeout {
 
   val config = ConfigFactory.load()
+
   lazy val host = Try(config.getString("http.host")).getOrElse("127.0.0.1")
   lazy val port = Try(config.getInt("http.port")).getOrElse(8080)
 
-  lazy implicit val requestChunkAggregationLimit = config.getString("spray.can.server.request-chunk-aggregation-limit").toLong
+  lazy implicit val requestChunkAggregationLimit = Try(config.getString("spray.can.server.request-chunk-aggregation-limit")).getOrElse("10485760").toLong
 
   lazy implicit val timeout = requestTimeout(config)
 
