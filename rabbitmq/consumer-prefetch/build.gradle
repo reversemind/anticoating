@@ -1,0 +1,55 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+group = 'consumer-prefetch'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+ext{
+    springBootVer = '1.2.5.RELEASE'
+}
+
+dependencies {
+
+    compile 'org.slf4j:slf4j-api:1.7.+'
+    compile 'org.slf4j:slf4j-simple:1.7.+'
+
+    compile 'org.apache.commons:commons-lang3:3.+'
+    compile 'commons-io:commons-io:2.4'
+
+    compile 'org.codehaus.groovy:groovy-all:2.3.+'
+    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
+    compile 'org.codehaus.groovy:groovy-json:2.4.+'
+
+
+    //Spring Boot
+    ['spring-boot-starter-web', 'spring-boot-starter-amqp'].each {
+        compile "org.springframework.boot:$it:$springBootVer"
+    }
+
+
+    testCompile 'org.mockito:mockito-all:1.10.+'
+
+    testCompile 'org.testng:testng:6.0.1'
+    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'cglib:cglib:3.1'
+    testCompile 'org.ow2.asm:asm:5.0.3'
+    testCompile 'org.objenesis:objenesis:2.1'
+
+    testCompile 'org.gperfutils:gprof:0.3.0-groovy-2.3'
+
+
+    testCompile 'org.apache.httpcomponents:httpclient:4.2.2'
+    testCompile 'org.apache.httpcomponents:httpcore:4.2.2'
+    testCompile 'org.apache.httpcomponents:httpmime:4.2.2'
+
+    testCompile 'org.codehaus.jackson:jackson-core-lgpl:1.9.12'
+
+}
