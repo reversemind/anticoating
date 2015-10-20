@@ -15,7 +15,7 @@ public class ConsumerConfiguration extends RabbitConfiguration {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory());
         container.setQueueNames(this.prefetchQueueName);
-        container.setConcurrentConsumers(10);
+        container.setConcurrentConsumers(1);
         container.setPrefetchCount(1);
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         container.setMessageListener(new MessageListenerAdapter(new MessageHandler()));
