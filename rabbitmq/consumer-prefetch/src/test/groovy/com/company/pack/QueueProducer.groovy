@@ -30,10 +30,10 @@ class QueueProducer {
 //
 //        channel.basicPublish("exchangePrefetch", "routingKey", MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
 
-        1.times { it ->
+        100.times { it ->
             amqpTemplate.convertAndSend("exchangePrefetch", "routingKey", message + ":" + it);
             log.info "Sent: $message:$it"
-            Thread.sleep(100)
+            Thread.sleep(50)
         }
     }
 }
