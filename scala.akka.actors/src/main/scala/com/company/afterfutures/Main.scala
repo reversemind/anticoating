@@ -15,19 +15,18 @@ object Main extends App with LazyLogging {
   implicit val actorSystem = ActorSystem("ActorAfterFeature")
   implicit val context = actorSystem.dispatcher
 
-//  val endPoint = "prefetch.queue"
-  val endPoint = "rabbitmq://localhost:5672/prefetch.queue?autoAck=false&autoDelete=true&automaticRecoveryEnabled=true"
+  val endPoint = "rabbitmq://localhost:5672/exchangePrefetch?queue=prefetch.queue&autoAck=false&autoDelete=false&automaticRecoveryEnabled=true&exchangeType=topic&routingKey=routingKey"
 
   val queueService = actorSystem.actorOf(Props(new QueueApi()), "queueActor")
-  val producerService = actorSystem.actorOf(Props(new MessageProducer()), "messageProducerActor")
+  val producerService = actorSystem.actorOf(Props(new MessageProducer(endPoint)), "messageProducerActor")
 
-  val messageConsumerActor = actorSystem.actorOf(Props(classOf[MessageConsumer]))
-  val messageProducerActor = actorSystem.actorOf(Props(classOf[CamelProducer], endPoint))
+  val messageConsumerActor = actorSystem.actorOf(Props(new MessageConsumer(endPoint)), "messageConsumerActor")
+  val messageProducerActor = actorSystem.actorOf(Props(classOf[CamelProducer], endPoint), "camelProducerActor")
 
   logger.info(s"Started main at :${new Date()}")
 
   val message = new CamelMessage(
-    MessageProducer.Generate,
+    "\"Message from Actor\"",
     Map(RabbitMQConstants.ROUTING_KEY -> "prefetched.queue")
   )
 
