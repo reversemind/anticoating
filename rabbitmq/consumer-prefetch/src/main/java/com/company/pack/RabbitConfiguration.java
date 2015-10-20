@@ -35,7 +35,8 @@ public class RabbitConfiguration {
         RabbitTemplate template = new RabbitTemplate(connectionFactory());
 
         //The routing key is set to the name of the queue by the broker for the default exchange.
-        template.setRoutingKey(this.prefetchQueueName);
+        template.setRoutingKey("routingKey");
+        template.setExchange("exchangePrefetch");
 
         // synchronously receive messages from
         template.setQueue(this.prefetchQueueName);
@@ -48,28 +49,4 @@ public class RabbitConfiguration {
         return new Queue(this.prefetchQueueName, true, false, false);
     }
 
-//    @Bean
-//    public SimpleMessageListenerContainer messageListenerContainer(){
-//        SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer(connectionFactory());
-//        simpleMessageListenerContainer.setQueueNames(prefetchQueueName);
-//
-//        // the one
-//        simpleMessageListenerContainer.setMaxConcurrentConsumers(1);
-//        simpleMessageListenerContainer.setPrefetchCount(1);
-//
-//        simpleMessageListenerContainer.setMessageListener(messageListener());
-//        return simpleMessageListenerContainer;
-//    }
-//
-//    @Bean
-//    public Object messageListener(){
-//        MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter();
-//        messageListenerAdapter.setDelegate(messageHandler());
-//        return messageListenerAdapter;
-//    }
-//
-//    @Bean
-//    public MessageHandler messageHandler(){
-//        return new MessageHandler();
-//    }
 }
