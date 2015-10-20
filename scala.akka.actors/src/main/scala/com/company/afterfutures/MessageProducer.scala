@@ -17,10 +17,18 @@ class MessageProducer(_endpointUri: String) extends Producer with Oneway with La
 
   val log = Logging(context.system, this)
 
+
+  val _l = context.actorSelection("akka://ActorAfterFeature/user/*")
+
   override def preStart() {
     // registering with other actors
     log.info(s"MessageProducer pre start at:${new Date()}")
     Register(self)
+
+    Thread.sleep(2000)
+    log.info(s"MessageProducer pre ended at:${new Date()}")
+
+    log.info(s"actor selection:${_l}")
   }
 
   override def transformResponse(message: Any): Any = { //<co id="ch08-order-producer3-1"/>
@@ -29,11 +37,12 @@ class MessageProducer(_endpointUri: String) extends Producer with Oneway with La
         try {
           val content = msg.bodyAs[String]
           logger.info(s"Produce a message:$content")
-          content
+
         } catch {
           case ex: Exception =>
             "TransformException: %s".format(ex.getMessage)
         }
+        msg
       }
       case other => message
     }

@@ -28,7 +28,7 @@ class MessageConsumer(_endpointUri: String) extends MQConsumer with LazyLogging{
         logger.info(s"Consumed a message:$message")
 
         implicit val timeout = Timeout(6 seconds)
-//        sender ! Ack
+        sender ! Ack
       } catch {
         case e: JsonParseException =>
           logger.warn("Bad message format, ignoring", e)
