@@ -3,7 +3,8 @@ package com.company.afterfutures
 import java.util.{Date, UUID}
 
 import akka.actor.Actor
-import akka.camel.{CamelMessage, Oneway, Producer}
+import akka.camel.javaapi.UntypedProducerActor
+import akka.camel.{Ack, CamelMessage, Oneway, Producer}
 import akka.event.Logging
 import akka.io.Tcp.Register
 import com.typesafe.scalalogging.LazyLogging
@@ -11,12 +12,12 @@ import com.typesafe.scalalogging.LazyLogging
 /**
  *
  */
-class MessageProducer(_endpointUri: String) extends Producer with Oneway with LazyLogging {
+//class MessageProducer(_endpointUri: String) extends Producer with Oneway with LazyLogging {
+class MessageProducer(_endpointUri: String) extends Oneway with LazyLogging {
 
   override def endpointUri: String = _endpointUri
 
   val log = Logging(context.system, this)
-
 
   val _l = context.actorSelection("akka://ActorAfterFeature/user/*")
 
@@ -31,7 +32,7 @@ class MessageProducer(_endpointUri: String) extends Producer with Oneway with La
     log.info(s"actor selection:${_l}")
   }
 
-  override def transformResponse(message: Any): Any = { //<co id="ch08-order-producer3-1"/>
+  override def transformResponse(message: Any): Any = {
     message match {
       case msg: CamelMessage => {
         try {
