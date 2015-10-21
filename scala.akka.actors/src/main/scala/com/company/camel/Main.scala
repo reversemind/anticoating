@@ -2,10 +2,8 @@ package com.company.camel
 
 import java.util.Date
 
-import akka.actor.Actor.Receive
-import akka.actor.{ActorLogging, Status, ActorSystem, Props}
-import akka.camel.{Ack, CamelMessage, Consumer, Oneway}
-import akka.io.Tcp.Register
+import akka.actor.{ActorLogging, ActorSystem, Props, Status}
+import akka.camel._
 import akka.util.Timeout
 import com.fasterxml.jackson.core.JsonParseException
 import com.typesafe.scalalogging.LazyLogging
@@ -16,29 +14,31 @@ import scala.language.postfixOps
 /**
  *
  */
-object Main extends App with LazyLogging{
+object Main extends App with LazyLogging with Configuration {
 
-  implicit val actorSystem = ActorSystem("ActorAfterFeature")
-  implicit val context = actorSystem.dispatcher
+  implicit val actorSystem = ActorSystem(actorSystemName)
+  implicit val contextExecutor = actorSystem.dispatcher
+  val camel = CamelExtension(actorSystem)
 
   implicit val timeout = Timeout(6 seconds)
 
-  val endPoint = "rabbitmq://localhost:5672/exchangePrefetch?queue=prefetch.queue&autoAck=false&autoDelete=false&automaticRecoveryEnabled=true&exchangeType=topic&routingKey=routingKey"
+  val producerActor = actorSystem.actorOf(Props(new SimpleProducer(endPointQueueFeatureTest)), name = "simpleProducer")
+  val consumerActor = actorSystem.actorOf(Props(new SimpleConsumer(endPointQueueFeatureTest)), name = "simpleConsumer")
 
-  val producer = actorSystem.actorOf(Props(new SimpleProducer(endPoint)), name = "simpleProducer")
-  val consumer = actorSystem.actorOf(Props(new SimpleConsumer(endPoint)), name = "simpleConsumer")
+  // get a future reference to the activation of the endpoint of the Consumer Actor
+  val activationFuture = camel.activationFutureFor(consumerActor)(timeout = 20 seconds, executor = contextExecutor)
 
   logger.info("Push message")
-  producer ! "fake message:0"
+  producerActor ! "fake message:0"
 
-  for(i <-1 to 10){
-    producer ! s"fake message:$i"
+  for (i <- 1 to 10) {
+    producerActor ! s"fake message:$i"
     Thread.sleep(1000)
   }
 
 }
 
-class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging{
+class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging {
   override def endpointUri: String = _endpointUri
 
   override def preStart() {
@@ -52,18 +52,21 @@ class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging{
     logger.info(s"actor selection:${_paths}")
   }
 
+  def upperCase(msg: CamelMessage) = msg.mapBody {
+    body: String => body.toUpperCase
+  }
+
   override def transformOutgoingMessage(message: Any): Any = {
     message match {
       case msg: CamelMessage => {
         try {
           val content = msg.bodyAs[String]
           logger.info(s"Produce a message:$content")
-
         } catch {
           case ex: Exception =>
             "TransformException: %s".format(ex.getMessage)
         }
-        msg
+        upperCase(msg)
       }
       case other => message
     }
@@ -87,7 +90,7 @@ class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging{
 
 }
 
-class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging{
+class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
   override def autoAck = false
 
@@ -95,7 +98,8 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging{
 
   var counter: Long = 0L
 
-  override def receive= {
+
+  override def receive = {
     case msg: CamelMessage =>
       try {
         val message = msg.bodyAs[String]
@@ -104,8 +108,8 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging{
         counter += 1
         log.info(s"Counter:$counter")
         log.info(s"Consumed a message:$message\n")
-        if(counter % 5 == 0){
-          throw new Exception("Fake exception")
+        if (counter % 5 == 0) {
+          //          throw new Exception("Fake exception")
         }
 
         sender ! Ack
