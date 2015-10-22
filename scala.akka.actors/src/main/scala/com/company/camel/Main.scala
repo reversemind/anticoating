@@ -1,15 +1,16 @@
 package com.company.camel
 
-import java.util.Date
-
-import akka.actor.{ActorLogging, ActorSystem, Props, Status}
+import akka.actor._
 import akka.camel._
+import akka.pattern.ask
 import akka.util.Timeout
 import com.fasterxml.jackson.core.JsonParseException
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.duration._
+import scala.concurrent.{Future, TimeoutException}
 import scala.language.postfixOps
+import scala.util.{Failure, Random, Success}
 
 /**
  *
@@ -22,16 +23,20 @@ object Main extends App with LazyLogging with Configuration {
 
   implicit val timeout = Timeout(6 seconds)
 
+  val MAX_RETRIES = 3
+  val RETRY_DELAY = 5 seconds
+
   val producerActor = actorSystem.actorOf(Props(new SimpleProducer(endPointQueueFeatureTest)), name = "simpleProducer")
   val consumerActor = actorSystem.actorOf(Props(new SimpleConsumer(endPointQueueFeatureTest)), name = "simpleConsumer")
 
+
   // get a future reference to the activation of the endpoint of the Consumer Actor
-  val activationFuture = camel.activationFutureFor(consumerActor)(timeout = 20 seconds, executor = contextExecutor)
+//  val activationFuture = camel.activationFutureFor(consumerActor)(timeout = 20 seconds, executor = contextExecutor)
 
-  logger.info("Push message")
-  producerActor ! "fake message:0"
+  logger.info("Push messages")
+//  producerActor ! "fake message:0"
 
-  for (i <- 1 to 10) {
+  for (i <- 1 to 4) {
     producerActor ! s"fake message:$i"
     Thread.sleep(1000)
   }
@@ -39,45 +44,37 @@ object Main extends App with LazyLogging with Configuration {
 }
 
 class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging {
+
   override def endpointUri: String = _endpointUri
-
-  override def preStart() {
-    super.preStart()
-    logger.info(s"SimpleProducer pre start at:${new Date()}")
-
-    Thread.sleep(2000)
-    logger.info(s"MessageProducer pre ended at:${new Date()}")
-
-    val _paths = context.actorSelection("akka://ActorAfterFeature/user/*")
-    logger.info(s"actor selection:${_paths}")
-  }
 
   def upperCase(msg: CamelMessage) = msg.mapBody {
     body: String => body.toUpperCase
   }
+
+  override def routeResponse(msg: Any): Unit = sender ! transformResponse(msg)
 
   override def transformOutgoingMessage(message: Any): Any = {
     message match {
       case msg: CamelMessage => {
         try {
           val content = msg.bodyAs[String]
-          logger.info(s"Produce a message:$content")
         } catch {
           case ex: Exception =>
             "TransformException: %s".format(ex.getMessage)
         }
-        upperCase(msg)
+        msg
       }
-      case other => message
+      case other =>
+        message
     }
   }
 
   override def transformResponse(message: Any): Any = {
+//    logger.info(s"Produce a message:$message")
     message match {
       case msg: CamelMessage => {
         try {
           val content = msg.bodyAs[String]
-          logger.info(s"Produce a message:$content")
           msg
         } catch {
           case ex: Exception =>
@@ -92,38 +89,80 @@ class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging {
 
 class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
+  import context.dispatcher
+
   override def autoAck = false
+  implicit val timeout = Timeout(20 seconds)
 
   override def endpointUri: String = _endpointUri
 
   var counter: Long = 0L
 
-
   override def receive = {
-    case msg: CamelMessage =>
-      try {
-        val message = msg.bodyAs[String]
-        implicit val timeout = Timeout(6 seconds)
+    case msg: CamelMessage => {
 
-        counter += 1
-        log.info(s"Counter:$counter")
-        log.info(s"Consumed a message:$message\n")
-        if (counter % 5 == 0) {
-          //          throw new Exception("Fake exception")
-        }
+      val message = msg.bodyAs[String]
 
-        sender ! Ack
-      } catch {
-        case e: JsonParseException =>
-          log.debug("Bad message format, ignoring", e)
+      counter += 1
+
+      val postActor = context.actorOf(Props(PostActor))
+
+      val delayed = akka.pattern.after(2000 millis, using = context.system.scheduler)(Future.failed(new TimeoutException("Future timeout")))
+
+      val future = Future firstCompletedOf Seq(postActor ? message, delayed)
+//      future foreach println
+      future.onComplete {
+        case Success(notification) =>
+          log.info(s"!!! Success !!! = Message is POSTed:$notification")
           sender ! Ack
-
-        case e: Exception =>
-          log.error("Unknown error:", e)
-          sender ! Status.Failure(e)
+        case Failure(ex) =>
+          log.error(s"!!! Failure !!! = Message is NOT POSTed", ex)
+          sender ! Status.Failure(ex)
       }
+
+//      future.onSuccess {
+//        case notification: String =>
+//          log.info(s"Message is POSTed:$notification")
+//          sender ! Ack
+//        case other =>
+//          log.info(s"Message is POSTed:$other")
+//          sender ! Ack
+//      }
+//
+//      future.onFailure {
+//        case ex =>
+//          log.error(s"Message is NOT POSTed:", ex)
+//          sender ! Status.Failure(ex)
+//      }
+
+    }
     case other =>
       log.info(s"Message:$other")
       sender ! Ack
   }
+}
+
+object PostActor extends Actor with LazyLogging {
+
+  var counter: Long = 0
+
+  override def receive: Receive = {
+    case message: String => {
+
+      counter += 1
+      val sleepFor = new Random().nextInt(3 * 1000)
+      logger.info(s"\nCounter is:$counter and will sleep for:$sleepFor ms with message:'$message'\n")
+
+      Thread.sleep(sleepFor)
+      if (counter % 2 == 0) {
+        logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
+        sender() ! Status.Failure(new RuntimeException("Exception - unable to send a POST"))
+      } else {
+        logger.info(s"\nPOST was successfully sent for message:'$message' - for POST counter:$counter\n")
+        sender ! s"\nPOST was successfully sent for message:'$message'\n"
+      }
+    }
+
+  }
+
 }
