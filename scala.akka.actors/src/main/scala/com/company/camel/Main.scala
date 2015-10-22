@@ -23,9 +23,6 @@ object Main extends App with LazyLogging with Configuration {
 
   implicit val timeout = Timeout(6 seconds)
 
-  val MAX_RETRIES = 3
-  val RETRY_DELAY = 5 seconds
-
   val producerActor = actorSystem.actorOf(Props(new SimpleProducer(endPointQueueFeatureTest)), name = "simpleProducer")
   val consumerActor = actorSystem.actorOf(Props(new SimpleConsumer(endPointQueueFeatureTest)), name = "simpleConsumer")
 
@@ -34,62 +31,24 @@ object Main extends App with LazyLogging with Configuration {
 //  val activationFuture = camel.activationFutureFor(consumerActor)(timeout = 20 seconds, executor = contextExecutor)
 
   logger.info("Push messages")
-//  producerActor ! "fake message:0"
 
   for (i <- 1 to 4) {
     producerActor ! s"fake message:$i"
-    Thread.sleep(10)
+    Thread.sleep(100)
   }
 
 }
 
 class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging {
-
   override def endpointUri: String = _endpointUri
-//
-//  def upperCase(msg: CamelMessage) = msg.mapBody {
-//    body: String => body.toUpperCase
-//  }
-//
-//  override def routeResponse(msg: Any): Unit = sender ! transformResponse(msg)
-//
-//  override def transformOutgoingMessage(message: Any): Any = {
-//    message match {
-//      case msg: CamelMessage => {
-//        try {
-//          val content = msg.bodyAs[String]
-//        } catch {
-//          case ex: Exception =>
-//            "TransformException: %s".format(ex.getMessage)
-//        }
-//        msg
-//      }
-//      case other =>
-//        message
-//    }
-//  }
-//
-//  override def transformResponse(message: Any): Any = {
-////    logger.info(s"Produce a message:$message")
-//    message match {
-//      case msg: CamelMessage => {
-//        try {
-//          val content = msg.bodyAs[String]
-//          msg
-//        } catch {
-//          case ex: Exception =>
-//            "TransformException: %s".format(ex.getMessage)
-//        }
-//      }
-//      case other => message
-//    }
-//  }
-
 }
 
 class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
   import context.dispatcher
+
+  val MAX_RETRIES = 3
+  val RETRY_DELAY = 5 seconds
 
   override def autoAck = false
   implicit val timeout = Timeout(20 seconds)
@@ -107,16 +66,8 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
       val postActor = context.actorOf(Props(PostActor))
 
-      val delayed = akka.pattern.after(5 seconds, using = context.system.scheduler)(
-//      {
-//        log.info(s"Let's try send it again:$message")
-//        Future(_self ! message)
-//      }
-//          log.info(s"Let's try send it again:$message")
-//        Future(_self ! message)
+      val delayed = akka.pattern.after(RETRY_DELAY, using = context.system.scheduler)(
         Future(_sender ! Status.Failure(new RuntimeException("============================RuntimeException")))
-//        Future(_sender ! Status.Failure(new RuntimeException("Future timeouted")))
-//          Future.failed(new RuntimeException("Future timeouted"))
       )
 
       val future = Future firstCompletedOf Seq(postActor ? message, delayed)
@@ -149,8 +100,12 @@ object PostActor extends Actor with LazyLogging {
       val sleepFor = new Random().nextInt(1 * 1000)
       logger.info(s"\nCounter is:$counter and will sleep for:$sleepFor ms with message:'$message'\n")
 
-//      Thread.sleep(sleepFor)
-      if (counter % 2 == 0) {
+      //      Thread.sleep(sleepFor)
+
+      if(message.equals("fake message:3")){
+        logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
+        sender() ! Status.Failure(new RuntimeException(s"Exception - unable to send a POST for $message"))
+      }else if (counter % 2 == 0) {
         logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
         sender() ! Status.Failure(new RuntimeException("Exception - unable to send a POST"))
       } else {
