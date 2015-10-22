@@ -2,9 +2,9 @@ package com.company.camel
 
 import akka.actor._
 import akka.camel._
-import akka.pattern.ask
+import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import com.fasterxml.jackson.core.JsonParseException
+
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.duration._
@@ -38,7 +38,7 @@ object Main extends App with LazyLogging with Configuration {
 
   for (i <- 1 to 4) {
     producerActor ! s"fake message:$i"
-    Thread.sleep(1000)
+    Thread.sleep(10)
   }
 
 }
@@ -46,44 +46,44 @@ object Main extends App with LazyLogging with Configuration {
 class SimpleProducer(_endpointUri: String) extends Oneway with LazyLogging {
 
   override def endpointUri: String = _endpointUri
-
-  def upperCase(msg: CamelMessage) = msg.mapBody {
-    body: String => body.toUpperCase
-  }
-
-  override def routeResponse(msg: Any): Unit = sender ! transformResponse(msg)
-
-  override def transformOutgoingMessage(message: Any): Any = {
-    message match {
-      case msg: CamelMessage => {
-        try {
-          val content = msg.bodyAs[String]
-        } catch {
-          case ex: Exception =>
-            "TransformException: %s".format(ex.getMessage)
-        }
-        msg
-      }
-      case other =>
-        message
-    }
-  }
-
-  override def transformResponse(message: Any): Any = {
-//    logger.info(s"Produce a message:$message")
-    message match {
-      case msg: CamelMessage => {
-        try {
-          val content = msg.bodyAs[String]
-          msg
-        } catch {
-          case ex: Exception =>
-            "TransformException: %s".format(ex.getMessage)
-        }
-      }
-      case other => message
-    }
-  }
+//
+//  def upperCase(msg: CamelMessage) = msg.mapBody {
+//    body: String => body.toUpperCase
+//  }
+//
+//  override def routeResponse(msg: Any): Unit = sender ! transformResponse(msg)
+//
+//  override def transformOutgoingMessage(message: Any): Any = {
+//    message match {
+//      case msg: CamelMessage => {
+//        try {
+//          val content = msg.bodyAs[String]
+//        } catch {
+//          case ex: Exception =>
+//            "TransformException: %s".format(ex.getMessage)
+//        }
+//        msg
+//      }
+//      case other =>
+//        message
+//    }
+//  }
+//
+//  override def transformResponse(message: Any): Any = {
+////    logger.info(s"Produce a message:$message")
+//    message match {
+//      case msg: CamelMessage => {
+//        try {
+//          val content = msg.bodyAs[String]
+//          msg
+//        } catch {
+//          case ex: Exception =>
+//            "TransformException: %s".format(ex.getMessage)
+//        }
+//      }
+//      case other => message
+//    }
+//  }
 
 }
 
@@ -93,13 +93,13 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
   override def autoAck = false
   implicit val timeout = Timeout(20 seconds)
-
   override def endpointUri: String = _endpointUri
-
   var counter: Long = 0L
 
   override def receive = {
     case msg: CamelMessage => {
+      val _sender = sender()
+      val _self = self
 
       val message = msg.bodyAs[String]
 
@@ -107,38 +107,34 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
       val postActor = context.actorOf(Props(PostActor))
 
-      val delayed = akka.pattern.after(2000 millis, using = context.system.scheduler)(Future.failed(new TimeoutException("Future timeout")))
+      val delayed = akka.pattern.after(5 seconds, using = context.system.scheduler)(
+//      {
+//        log.info(s"Let's try send it again:$message")
+//        Future(_self ! message)
+//      }
+//          log.info(s"Let's try send it again:$message")
+//        Future(_self ! message)
+        Future(_sender ! Status.Failure(new RuntimeException("============================RuntimeException")))
+//        Future(_sender ! Status.Failure(new RuntimeException("Future timeouted")))
+//          Future.failed(new RuntimeException("Future timeouted"))
+      )
 
       val future = Future firstCompletedOf Seq(postActor ? message, delayed)
-//      future foreach println
-      future.onComplete {
+
+      future onComplete {
         case Success(notification) =>
           log.info(s"!!! Success !!! = Message is POSTed:$notification")
-          sender ! Ack
+          _sender ! Ack
         case Failure(ex) =>
           log.error(s"!!! Failure !!! = Message is NOT POSTed", ex)
-          sender ! Status.Failure(ex)
+          _sender ! Status.Failure(ex)
       }
 
-//      future.onSuccess {
-//        case notification: String =>
-//          log.info(s"Message is POSTed:$notification")
-//          sender ! Ack
-//        case other =>
-//          log.info(s"Message is POSTed:$other")
-//          sender ! Ack
-//      }
-//
-//      future.onFailure {
-//        case ex =>
-//          log.error(s"Message is NOT POSTed:", ex)
-//          sender ! Status.Failure(ex)
-//      }
-
+//      future pipeTo sender()
     }
     case other =>
       log.info(s"Message:$other")
-      sender ! Ack
+      sender() ! Ack
   }
 }
 
@@ -150,16 +146,16 @@ object PostActor extends Actor with LazyLogging {
     case message: String => {
 
       counter += 1
-      val sleepFor = new Random().nextInt(3 * 1000)
+      val sleepFor = new Random().nextInt(1 * 1000)
       logger.info(s"\nCounter is:$counter and will sleep for:$sleepFor ms with message:'$message'\n")
 
-      Thread.sleep(sleepFor)
+//      Thread.sleep(sleepFor)
       if (counter % 2 == 0) {
         logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
         sender() ! Status.Failure(new RuntimeException("Exception - unable to send a POST"))
       } else {
         logger.info(s"\nPOST was successfully sent for message:'$message' - for POST counter:$counter\n")
-        sender ! s"\nPOST was successfully sent for message:'$message'\n"
+        sender() ! s"\nPOST was successfully sent for message:'$message'\n"
       }
     }
 
