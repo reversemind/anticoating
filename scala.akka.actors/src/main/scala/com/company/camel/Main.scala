@@ -6,6 +6,9 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.camel.component.rabbitmq.RabbitMQConstants
+import org.apache.camel.model.language.ConstantExpression
+import org.apache.camel.model.{ProcessorDefinition, RouteDefinition}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -54,7 +57,7 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
   import context.dispatcher
 
   val MAX_RETRIES = 3
-  val RETRY_DELAY = 2 seconds
+  val RETRY_DELAY = 5 seconds
 
   override def autoAck = false
 
@@ -63,9 +66,18 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
   override def endpointUri: String = _endpointUri
 
   var counter: Long = 0L
+  var retryCounter = 0L
 
   val postActor = context.actorOf(Props(PostActor))
 
+  override def onRouteDefinition: (RouteDefinition) => ProcessorDefinition[_] =
+    (rd) => rd.setHeader(RabbitMQConstants.REQUEUE, new ConstantExpression("true"))
+
+  /**
+   * // TODO - correct usage - RabbitMQ - parameters
+   *
+   * @return
+   */
   override def receive = {
     case msg: CamelMessage => {
 
@@ -82,7 +94,6 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
       //        context.stop(self)
       //      }
 
-
       // # stage 1
 
       val _sender = sender()
@@ -92,27 +103,28 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
       counter += 1
 
-      val delayed = akka.pattern.after(RETRY_DELAY, using = context.system.scheduler)(
-        Future(_sender ! Status.Failure(new RuntimeException("RuntimeException")))
+      val delayed = akka.pattern.after(RETRY_DELAY, using = context.system.scheduler)({
+        retryCounter += 1
+        if(retryCounter == 10){
+          context.stop(_self)
+        }
+        Future(_sender ! Status.Failure(new RuntimeException("RuntimeException №1")))
+        }
       )
 
       lazy val future = Future firstCompletedOf Seq(postActor ? message, delayed)
 
       future.onComplete {
         case Success(notification) => notification match {
-
             case "NOT_OK" => {
               log.info(s"!!! IS NOT Success !!! = Message is NOT POSTed:'$notification'")
-              _sender ! Status.Failure(new RuntimeException("RuntimeException #3"))
+//              _sender ! Status.Failure(new RuntimeException("RuntimeException #3"))
             }
-
             case _ => {
               log.info(s"!!! Success !!! = Message is POSTed:'$notification'")
               _sender ! Ack
             }
-
           }
-
           //          context.stop(postActor)
         case Failure(ex) =>
           log.error(s"!!! Failure !!! = Message is NOT POSTed", ex)
@@ -169,6 +181,7 @@ object PostActor extends Actor with LazyLogging {
       //        logger.info(s"\nPOST was successfully sent for message:'$message' - for POST counter:$counter\n")
       //        sender() ! s"\nPOST was successfully sent for message:'$message'\n"
       //      }
+
       if (message != null) {
         if (message.equals("fake message:3")) {
           logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
