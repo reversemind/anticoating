@@ -85,11 +85,17 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
 
       val delayed = akka.pattern.after(RETRY_DELAY, using = context.system.scheduler)({
         retryCounter += 1
-        if(retryCounter == 10){
-          context.stop(_self)
+        if (retryCounter == MAX_RETRIES) {
+          // context.stop(_self)
+          log.warning(s"Max retry limit is over for message:$message")
+          _sender ! Ack
+          context.stop(self)
+          Future(_sender ! Status.Failure(new RuntimeException("RuntimeException №2 max retry is over")))
+        } else {
+          Future(_sender ! Status.Failure(new RuntimeException("RuntimeException №1")))
         }
-        Future(_sender ! Status.Failure(new RuntimeException("RuntimeException №1")))
-        }
+
+      }
       )
 
       lazy val future = Future firstCompletedOf Seq(postActor ? message, delayed)
