@@ -35,10 +35,6 @@ object Main extends App with LazyLogging with Configuration {
   val producerActor = actorSystem.actorOf(Props(new SimpleProducer(endPointQueueFeatureTest)), name = "simpleProducer")
   val consumerActor = actorSystem.actorOf(Props(new SimpleConsumer(endPointQueueFeatureTest)), name = "simpleConsumer")
 
-
-  // get a future reference to the activation of the endpoint of the Consumer Actor
-  //  val activationFuture = camel.activationFutureFor(consumerActor)(timeout = 20 seconds, executor = contextExecutor)
-
   logger.info("Push messages")
 
   for (i <- 1 to 4) {
@@ -74,27 +70,11 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
     (rd) => rd.setHeader(RabbitMQConstants.REQUEUE, new ConstantExpression("true"))
 
   /**
-   * // TODO - correct usage - RabbitMQ - parameters
    *
    * @return
    */
   override def receive = {
     case msg: CamelMessage => {
-
-      // # stage 2
-      //
-      //      val message = msg.bodyAs[String]
-      //      log.info(s"Income message:$message")
-      //      sender() ! Status.Failure(new RuntimeException("RuntimeException"))
-      //
-      //
-      //      counter += 1
-      //
-      //      if(counter == 2){
-      //        context.stop(self)
-      //      }
-
-      // # stage 1
 
       val _sender = sender()
       val _self = self
@@ -125,36 +105,12 @@ class SimpleConsumer(_endpointUri: String) extends Consumer with ActorLogging {
               _sender ! Ack
             }
           }
-          //          context.stop(postActor)
         case Failure(ex) =>
           log.error(s"!!! Failure !!! = Message is NOT POSTed", ex)
           //          context.stop(postActor)
           _sender ! Status.Failure(ex)
       }
-
-
-      //      future onSuccess {
-      //        case notification: String => {
-      //          log.info(s"!!! Success !!! = Message is POSTed:'$notification'")
-      //          context.stop(postActor)
-      //          _sender ! Ack
-      //        }
-      //      }
-      //
-      //      future onFailure  {
-      //        case ex: RuntimeException => {
-      //            log.error(s"!!! Failure !!! = Message is NOT POSTed", ex)
-      //            context.stop(postActor)
-      ////            _sender ! Status.Failure(ex)
-      //        }
-      //      }
-
-      //      sender() ! Status.Failure(new RuntimeException("RuntimeException #2"))
-      ////      future pipeTo sender()
     }
-    //    case other =>
-    //      log.info(s"Message:$other")
-    //      sender() ! Ack
   }
 }
 
