@@ -1,0 +1,154 @@
+Index: src/main/scala/com/company/camel/Main.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/scala/com/company/camel/Main.scala	(revision b4bc7c6532586e0ad63bf836ea75a78212382c4d)
++++ src/main/scala/com/company/camel/Main.scala	(revision )
+@@ -53,7 +53,7 @@
+   import context.dispatcher
+ 
+   val MAX_RETRIES = 3
+-  val RETRY_DELAY = 5 seconds
++  val RETRY_DELAY = 0 seconds
+ 
+   override def autoAck = false
+ 
+@@ -75,82 +75,84 @@
+    */
+   override def receive = {
+     case msg: CamelMessage => {
+-
+       val _sender = sender()
+       val _self = self
+ 
+-      val message = msg.bodyAs[String]
++      val _message = msg.bodyAs[String]
+ 
+-      counter += 1
++      self ! new InnerMsg(_sender, _message, 0, "FIRST_TIME")
+ 
++      sender() ! Ack
++    }// camel
++
++    case innerMsg: InnerMsg => {
++
++      val _sender = sender()
++      val _self = self
++
+       val delayed = akka.pattern.after(RETRY_DELAY, using = context.system.scheduler)({
+-        retryCounter += 1
+-        if (retryCounter == MAX_RETRIES) {
+-          // context.stop(_self)
+-          log.warning(s"Max retry limit is over for message:$message")
+-          _sender ! Ack
+-          context.stop(self)
+-          Future(_sender ! Status.Failure(new RuntimeException("RuntimeException №2 max retry is over")))
++
++        if(innerMsg.retry == MAX_RETRIES){
++          log.error(s"Failure after MAX_RETRIES message:'${innerMsg.message}' retry:'${innerMsg.retry}'")
++//          Future(innerMsg.sender ! Status.Failure(new RuntimeException("RuntimeException №2 max retry is over")))
++//          Future(innerMsg.camelConsumerSender ! Ack)
++          Future(_sender ! Ack)
+-        } else {
++        }else {
+-          Future(_sender ! Status.Failure(new RuntimeException("RuntimeException №1")))
++          // let's try again MAX_RETRIES
++          log.info(s"Let's try again message:'${innerMsg.message}' retry:'${innerMsg.retry + 1}'")
++          Future(_self ! new InnerMsg(innerMsg.camelConsumerSender, innerMsg.message, innerMsg.retry + 1, "TRY_AGAIN"))
+         }
+-
+       }
+       )
+ 
+-      lazy val future = Future firstCompletedOf Seq(postActor ? message, delayed)
+-
+-      future.onComplete {
+-        case Success(notification) => notification match {
+-            case "NOT_OK" => {
+-              log.info(s"!!! IS NOT Success !!! = Message is NOT POSTed:'$notification'")
+-//              _sender ! Status.Failure(new RuntimeException("RuntimeException #3"))
+-            }
++      Future firstCompletedOf Seq(postActor ? innerMsg, delayed) onComplete {
++        case Success(notification: InnerMsg) => notification match {
+-            case _ => {
++          case _ => {
+-              log.info(s"!!! Success !!! = Message is POSTed:'$notification'")
++            log.info(s"!!! Success !!! = Message is POSTed:'${notification.message}'")
++//            innerMsg.camelConsumerSender ! Ack
+-              _sender ! Ack
+-            }
+-          }
++            _sender ! Ack
++          }
++        }
+         case Failure(ex) =>
+           log.error(s"!!! Failure !!! = Message is NOT POSTed", ex)
+-          //          context.stop(postActor)
+-          _sender ! Status.Failure(ex)
++
++//          innerMsg.copy(retry = innerMsg.retry + 1)
++          if(innerMsg.retry == MAX_RETRIES){
++            log.error(s"Failure after MAX_RETRIES message:'${innerMsg.message}' retry:'${innerMsg.retry}'")
++//            context.stop(self)
++            _sender ! Ack;//Status.Failure(ex)
++          }else{
++            // let's try again MAX_RETRIES
++            log.info(s"Let's try again message:'${innerMsg.message}' retry:'${innerMsg.retry + 1}'")
++            _self ! new InnerMsg(innerMsg.camelConsumerSender, innerMsg.message, innerMsg.retry + 1, "TRY_AGAIN")
+-      }
+-    }
+-  }
++          }
++      }
++    }
++
+-}
++  }
++}
++case class InnerMsg(camelConsumerSender: ActorRef, message: String, retry: Int, state: String)
+ 
+ object PostActor extends Actor with LazyLogging {
+ 
+   var counter: Long = 0
+ 
+   override def receive: Receive = {
+-    case message: String => {
++    case innerMsg: InnerMsg => {
+ 
+       counter += 1
+       val sleepFor = new Random().nextInt(1 * 3000)
+-      logger.info(s"\nCounter is:$counter and will sleep for:$sleepFor ms with message:'$message'\n")
++      logger.info(s"\nCounter is:$counter and will sleep for:$sleepFor ms with message:'${innerMsg.message}'\n")
+ 
+-//      Thread.sleep(sleepFor)
++      //      Thread.sleep(sleepFor)
+-
+-      //      if(message.equals("fake message:3")){
+-      //        logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
+-      //        sender() ! Status.Failure(new RuntimeException(s"Exception - unable to send a POST for $message"))
+-      //      }else if (counter % 2 == 0) {
+-      //        logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
+-      //        sender() ! Status.Failure(new RuntimeException("Exception - unable to send a POST"))
+-      //      } else {
+-      //        logger.info(s"\nPOST was successfully sent for message:'$message' - for POST counter:$counter\n")
+-      //        sender() ! s"\nPOST was successfully sent for message:'$message'\n"
+-      //      }
+-
+-      if (message != null) {
+-        if (message.equals("fake message:3")) {
+-          logger.info(s"\nUnable to send a POST for message:'$message' let's try again for POST counter:$counter\n")
+-          sender() ! "NOT_OK"; //Status.Failure(new IllegalArgumentException(s"IllegalArgumentException - unable to send a POST for $message"))
++      if (innerMsg.message != null) {
++        if (innerMsg.message.equals("fake message:3")) {
++          logger.info(s"\nUnable to send a POST for message:'${innerMsg.message}' let's try again for POST counter:$counter\n")
++          sender() ! Status.Failure(new IllegalArgumentException(s"IllegalArgumentException - unable to send a POST for ${innerMsg.message}"))
+         } else {
+-          logger.info(s"\nPOST was successfully sent for message:'$message' - for POST counter:$counter\n")
+-          sender() ! s"\nPOST was successfully sent for message:'$message'\n"
++          logger.info(s"\nPOST was successfully sent for message:'${innerMsg.message}' - for POST counter:$counter\n")
++          innerMsg.copy(state = "TRY_AGAIN")
++          sender() ! innerMsg; //s"\nPOST was successfully sent for message:'$message'\n"
+         }
+       }
+ 
