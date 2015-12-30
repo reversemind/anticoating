@@ -21,10 +21,8 @@ struct ExtDuration{
 };
 
 ExtDuration extractDuration(string _string){
-//ExtDuration extractDuration(char *_string){
-
+	// look at com.test.loop.SimpleLoop.java
 	size_t pos = _string.find("Enter to main method at ms:") + string("Enter to main method at ms:").length();
-
 	string mainMethodStartTime = _string.substr(pos);
 
 	ExtDuration duration;
@@ -32,6 +30,7 @@ ExtDuration extractDuration(string _string){
 
 	return duration;
 }
+
 int main(int argc, char *argv[]) {
 
 	cout << "Start measurement\n" << argv[1];
@@ -67,18 +66,17 @@ int main(int argc, char *argv[]) {
 		long processEndTime = currentTime;
 		cout << "\nEnd JVM at " << currentTime << " ms\n-------------------------------------------------\n";
 
-		    	fread(__result,1,sizeof(__result),fp);
 
-				cout << "size:" << sizeof(__result) << "\n";
 
-				string _str = string(__result);
-				cout << "string length is:" << _str.length() << "\n";
+		fread(__result,1,sizeof(__result),fp);
+		string _str = string(__result);
+		fclose (fp);
+		cout << "string:'" << _str << "'\n";
 
-		    	fclose (fp);
-            	cout << "string:'" << _str << "'\n";
+		ExtDuration extDuration = extractDuration(_str);
+		cout << " duration startedAt:\n" << extDuration.startedAt << "\n";
 
-				ExtDuration extDuration = extractDuration(_str);
-            	cout << " position:\n" << extDuration.startedAt << "\n";
+
 
 		cout << "\n---deltas:\n";
 		cout << (extDuration.startedAt - processStartTime) << " ms compilation time\n";
