@@ -1,0 +1,1 @@
+# Measurement of time for different compilation parameters

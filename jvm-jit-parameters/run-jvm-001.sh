@@ -31,10 +31,14 @@
 # steps two
 startTime=$(date +%s.%N)
 #java -server -d64 -jar -showversion -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1 -XX:CompileThreshold=120000 build/libs/jvm-jit-parameters-0.1.jar
-for i in {1..5};
-do java -server -d64 -jar -showversion -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=2 build/libs/jvm-jit-parameters-0.1.jar;
+nnn=5
+for (( i=0; i<$nnn; i++ ))
+#do java -server -d64 -jar -showversion -Xcomp -XX:+UseParallelGC -XX:+AggressiveOpts -XX:-BackgroundCompilation -XX:-TieredCompilation -XX:CICompilerCount=1 build/libs/jvm-jit-parameters-0.1.jar;
+#do java -server -d64 -jar -Xcomp -XX:+UseParallelGC -XX:+AggressiveOpts -XX:-BackgroundCompilation -XX:-TieredCompilation -XX:CICompilerCount=1 build/libs/jvm-jit-parameters-0.1.jar;
+do java -server -d64 -jar -Xcomp -XX:+UseParallelGC -XX:CICompilerCount=2 build/libs/jvm-jit-parameters-0.1.jar;
+#do ./mjit
 done
 duration=$(echo "$(date +%s.%N) - $startTime" | bc)
-ff=$(echo "$duration / 5")
-printf "\nCompilation time: %.6f seconds\n" $ff
+result=$(bc <<< "scale=6;$duration/$nnn")
+printf "\nCompile and run time is %.6f seconds\n" $result
 
