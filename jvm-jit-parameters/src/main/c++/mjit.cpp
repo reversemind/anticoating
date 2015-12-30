@@ -13,6 +13,25 @@
 
 using namespace std;
 
+struct ExtDuration{
+	long startedAt;
+	long spendMs;
+	long spendMicro;
+	long spendNano;
+};
+
+ExtDuration extractDuration(string _string){
+//ExtDuration extractDuration(char *_string){
+
+	size_t pos = _string.find("Enter to main method at ms:") + string("Enter to main method at ms:").length();
+
+	string mainMethodStartTime = _string.substr(pos);
+
+	ExtDuration duration;
+	duration.startedAt = std::stol(mainMethodStartTime);
+
+	return duration;
+}
 int main(int argc, char *argv[]) {
 
 	cout << "Start measurement\n" << argv[1];
@@ -33,17 +52,19 @@ int main(int argc, char *argv[]) {
     		char __result [2000];
 
 		clock_gettime(CLOCK_REALTIME, &tps);
-		double currentTime = tps.tv_sec*1000 + (tps.tv_nsec / 1000000.0);
+		long currentTime = tps.tv_sec*1000 + (tps.tv_nsec / 1000000.0);
+		long processStartTime = currentTime;
 		cout << "\n\n-------------------------------------------------\nStart JVM at " << currentTime << " ms\n\n";
 
-		//		system("java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1 -XX:CompileThreshold=120000 build/libs/jvm-jit-parameters-0.1.jar");
-		//system(argv[1]);
+		// system("java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1 -XX:CompileThreshold=120000 build/libs/jvm-jit-parameters-0.1.jar");
+		// system(argv[1]);
 
     	fp = popen(argv[1],"r");
 
 		clock_gettime(CLOCK_REALTIME, &tpe);
 
 		currentTime = tpe.tv_sec*1000 + (tpe.tv_nsec / 1000000.0);
+		long processEndTime = currentTime;
 		cout << "\nEnd JVM at " << currentTime << " ms\n-------------------------------------------------\n";
 
 		    	fread(__result,1,sizeof(__result),fp);
@@ -56,8 +77,13 @@ int main(int argc, char *argv[]) {
 		    	fclose (fp);
             	cout << "string:'" << _str << "'\n";
 
-            	size_t pos = _str.find("Enter to main method at ms:") + string("Enter to main method at ms:").length();
-            	cout << pos << " position:\n" << _str.substr(pos) << "\n";
+				ExtDuration extDuration = extractDuration(_str);
+            	cout << " position:\n" << extDuration.startedAt << "\n";
+
+		cout << "\n---deltas:\n";
+		cout << (extDuration.startedAt - processStartTime) << " ms compilation time\n";
+		cout << (processEndTime - processStartTime) << " ms compilation+execution time\n";
+
 	}
 	clock_gettime(CLOCK_REALTIME, &globalEnd);
 
@@ -70,6 +96,8 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
+
+
 
 
 
