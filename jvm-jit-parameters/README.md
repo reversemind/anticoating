@@ -1,4 +1,4 @@
-# Measurement of time for different compilation parameters
+# Measurement of time for different compilation parameters0
 
 #### Some JIT info:
 http://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html#BABCBGHF
