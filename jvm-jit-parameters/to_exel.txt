@@ -1,0 +1,8 @@
+;52.000;4.455;6.455;51.909;
+-client;51.909;4.364;6.455;51.909;
+-server -d64;51.909;4.273;6.727;52.455;
+-server -d64 -XX:+TieredCompilation;52.455;4.455;6.727;1106.545;
+-server -d64 -Xcomp -XX:+TieredCompilation;1106.545;2.818;82.727;1088.545;
+-server -d64 -Xcomp -XX:-TieredCompilation;1088.545;0.455;65.364;1132.909;
+-server -d64 -Xcomp -XX:+TieredCompilation -XX:CICompilerCount=10;1132.909;2.636;85.364;1087.545;
+-server -d64 -jar -Xcomp -XX:CICompilerCount=2 -XX:CompileThreshold=100;1087.545;2.636;81.364;1168.909;

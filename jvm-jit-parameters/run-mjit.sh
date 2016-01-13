@@ -2,139 +2,200 @@
 
 
 # default parameters
-#./mjit "java -jar build/libs/jvm-jit-parameters-0.1.jar"
+./mjit "" "build/libs/jvm-jit-parameters-0.1.jar"
 
-#    ====================================================================================
+#    =====================================================================================================
 #    JVM params:
 #    java -jar build/libs/jvm-jit-parameters-0.1.jar
 #
 #    Compile:
-#    - average:48.6000000000 ms
-#    - standart deviation:1.3564659966 ms
+#    - average:53.364 ms
+#    - standart deviation:3.675 ms
 #
 #    Algo execution:
-#    - average:4.2000000000 ms
-#    - standart deviation:0.4000000000 ms
+#    - average:4.364 ms
+#    - standart deviation:0.643 ms
+#
+#    Algo+stdout execution:
+#    - average:6.818 ms
+#    - standart deviation:0.716 ms
 #
 #    All time:
-#    - average:54.7000000000 ms
-#    - standart deviation:1.2688577540 ms
-#    ====================================================================================
+#    - average:60.182 ms
+#    - standart deviation:3.688 ms
+#    =====================================================================================================
+#    ;53.364;4.364;6.818;60.182;
+
 
 
 # server is ON
-#./mjit "java -server -d64 -jar build/libs/jvm-jit-parameters-0.1.jar"
-
-#    ====================================================================================
+#./mjit "-server -d64" "build/libs/jvm-jit-parameters-0.1.jar"
+#
+#    =====================================================================================================
 #    JVM params:
-#    java -server -d64 -jar build/libs/jvm-jit-parameters-0.1.jar
+#    -server -d64
 #
 #    Compile:
-#    - average:48.2000000000 ms
-#    - standart deviation:0.6000000000 ms
+#    - average:50.455 ms
+#    - standart deviation:1.924 ms
 #
 #    Algo execution:
-#    - average:4.4000000000 ms
-#    - standart deviation:0.4898979486 ms
+#    - average:4.455 ms
+#    - standart deviation:0.498 ms
+#
+#    Algo+stdout execution:
+#    - average:6.636 ms
+#    - standart deviation:0.881 ms
 #
 #    All time:
-#    - average:54.6000000000 ms
-#    - standart deviation:0.4898979486 ms
-#    ====================================================================================
+#    - average:57.091 ms
+#    - standart deviation:1.975 ms
+#    =====================================================================================================
+#    -server -d64;50.455;4.455;6.636;57.091;
+
+
 
 
 # client is ON
-#./mjit "java -client -jar build/libs/jvm-jit-parameters-0.1.jar"
+#./mjit "-client" "build/libs/jvm-jit-parameters-0.1.jar"
 
-#    ====================================================================================
+#    =====================================================================================================
 #    JVM params:
-#    java -client -jar build/libs/jvm-jit-parameters-0.1.jar
+#    -client
 #
 #    Compile:
-#    - average:48.0000000000 ms
-#    - standart deviation:1.0000000000 ms
+#    - average:49.727 ms
+#    - standart deviation:1.052 ms
 #
 #    Algo execution:
-#    - average:4.3000000000 ms
-#    - standart deviation:0.4582575695 ms
+#    - average:4.364 ms
+#    - standart deviation:0.643 ms
+#
+#    Algo+stdout execution:
+#    - average:6.455 ms
+#    - standart deviation:0.498 ms
 #
 #    All time:
-#    - average:54.5000000000 ms
-#    - standart deviation:1.0246950766 ms
-#    ====================================================================================
-
+#    - average:56.182 ms
+#    - standart deviation:0.936 ms
+#    =====================================================================================================
+#    -client;49.727;4.364;6.455;56.182;
 
 
 
 # fast start & slow execution
-#./mjit "java -server -d64 -jar -XX:+TieredCompilation build/libs/jvm-jit-parameters-0.1.jar"
+#./mjit "-server -d64 -XX:+TieredCompilation" "build/libs/jvm-jit-parameters-0.1.jar"
 
 #    =====================================================================================================
 #    JVM params:
-#    java -server -d64 -jar -XX:+TieredCompilation build/libs/jvm-jit-parameters-0.1.jar
+#    -server -d64 -XX:+TieredCompilation
 #
 #    Compile:
-#    - average:48.636 ms
-#    - standart deviation:0.881 ms
+#    - average:48.182 ms
+#    - standart deviation:1.192 ms
 #
 #    Algo execution:
-#    - average:4.182 ms
-#    - standart deviation:0.386 ms
+#    - average:4.000 ms
+#    - standart deviation:0.000 ms
+#
+#    Algo+stdout execution:
+#    - average:6.455 ms
+#    - standart deviation:0.498 ms
 #
 #    All time:
-#    - average:54.727 ms
-#    - standart deviation:0.862 ms
+#    - average:54.636 ms
+#    - standart deviation:1.367 ms
 #    =====================================================================================================
-
-
+#    -server -d64 -XX:+TieredCompilation;48.182;4.000;6.455;54.636;
 
 
 
 
 # slow start compilation & fast execution
-#./mjit "java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1 build/libs/jvm-jit-parameters-0.1.jar"
+#./mjit "-server -d64 -Xcomp -XX:+TieredCompilation" "build/libs/jvm-jit-parameters-0.1.jar"
 
 #    =====================================================================================================
 #    JVM params:
-#    java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1 build/libs/jvm-jit-parameters-0.1.jar
+#    -server -d64 -Xcomp -XX:+TieredCompilation
 #
 #    Compile:
-#    - average:1021.273 ms
-#    - standart deviation:2.700 ms
+#    - average:1139.909 ms
+#    - standart deviation:28.640 ms
 #
 #    Algo execution:
-#    - average:0.455 ms
-#    - standart deviation:0.498 ms
+#    - average:2.727 ms
+#    - standart deviation:0.617 ms
+#
+#    Algo+stdout execution:
+#    - average:85.364 ms
+#    - standart deviation:2.772 ms
 #
 #    All time:
-#    - average:1083.364 ms
-#    - standart deviation:2.869 ms
-#    =======================================================================================================
+#    - average:1225.273 ms
+#    - standart deviation:29.949 ms
+#    =====================================================================================================
+#    -server -d64 -Xcomp -XX:+TieredCompilation;1139.909;2.727;85.364;1225.273;
 
 
 
-
-
-# slow start compilation with N threads & fast execution
-#./mjit "java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=10 build/libs/jvm-jit-parameters-0.1.jar"
-
+#
+#./mjit " -server -d64 -Xcomp -XX:-TieredCompilation" "build/libs/jvm-jit-parameters-0.1.jar"
 
 #    =====================================================================================================
 #    JVM params:
-#    java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=10 build/libs/jvm-jit-parameters-0.1.jar
+#     -server -d64 -Xcomp -XX:-TieredCompilation
 #
 #    Compile:
-#    - average:1085.909 ms
-#    - standart deviation:2.999 ms
+#    - average:1099.273 ms
+#    - standart deviation:22.255 ms
 #
 #    Algo execution:
-#    - average:0.455 ms
-#    - standart deviation:0.498 ms
+#    - average:0.364 ms
+#    - standart deviation:0.481 ms
+#
+#    Algo+stdout execution:
+#    - average:67.273 ms
+#    - standart deviation:1.863 ms
 #
 #    All time:
-#    - average:1151.545 ms
-#    - standart deviation:2.808 ms
+#    - average:1166.545 ms
+#    - standart deviation:22.661 ms
 #    =====================================================================================================
+#     -server -d64 -Xcomp -XX:-TieredCompilation;1099.273;0.364;67.273;1166.545;
+
+
+
+
+#./mjit " -server -d64 -Xcomp -XX:+TieredCompilation -XX:CICompilerCount=10" "build/libs/jvm-jit-parameters-0.1.jar"
+
+#    =====================================================================================================
+#    JVM params:
+#     -server -d64 -Xcomp -XX:+TieredCompilation -XX:CICompilerCount=10
+#
+#    Compile:
+#    - average:1101.818 ms
+#    - standart deviation:12.755 ms
+#
+#    Algo execution:
+#    - average:2.636 ms
+#    - standart deviation:0.481 ms
+#
+#    Algo+stdout execution:
+#    - average:83.091 ms
+#    - standart deviation:1.676 ms
+#
+#    All time:
+#    - average:1184.909 ms
+#    - standart deviation:13.083 ms
+#    =====================================================================================================
+#     -server -d64 -Xcomp -XX:+TieredCompilation -XX:CICompilerCount=10;1101.818;2.636;83.091;1184.909;
+
+
+
+
+
+
+
 
 
 
@@ -205,7 +266,7 @@
 
 
 # 100
-./mjit "java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1 -XX:CompileThreshold=100 build/libs/jvm-jit-parameters-0.1.jar"
+#./mjit "java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1 -XX:CompileThreshold=100 build/libs/jvm-jit-parameters-0.1.jar"
 
 #    =====================================================================================================
 #    JVM params:
@@ -223,3 +284,15 @@
 #    - average:1156.727 ms
 #    - standart deviation:25.930 ms
 #    =====================================================================================================
+
+
+
+
+;52.000;4.455;6.455;51.909;
+-client;51.909;4.364;6.455;51.909;
+-server -d64;51.909;4.273;6.727;52.455;
+-server -d64 -XX:+TieredCompilation;52.455;4.455;6.727;1106.545;
+-server -d64 -Xcomp -XX:+TieredCompilation;1106.545;2.818;82.727;1088.545;
+-server -d64 -Xcomp -XX:-TieredCompilation;1088.545;0.455;65.364;1132.909;
+-server -d64 -Xcomp -XX:+TieredCompilation -XX:CICompilerCount=10;1132.909;2.636;85.364;1087.545;
+-server -d64 -jar -Xcomp -XX:CICompilerCount=2 -XX:CompileThreshold=100;1087.545;2.636;81.364;1168.909;

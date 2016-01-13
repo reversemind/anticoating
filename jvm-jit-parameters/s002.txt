@@ -1,0 +1,75 @@
+
+Enter to main method at:1451475654337 ms
+Time spent: 1 ms
+Time micros:390
+Time nanos :389876
+
+
+Enter to main method at:1451475655481 ms
+Time spent: 0 ms
+Time micros:408
+Time nanos :408854
+
+
+Enter to main method at:1451475656625 ms
+Time spent: 1 ms
+Time micros:394
+Time nanos :393525
+
+
+Enter to main method at:1451475657760 ms
+Time spent: 1 ms
+Time micros:400
+Time nanos :400166
+
+
+Enter to main method at:1451475658894 ms
+Time spent: 0 ms
+Time micros:389
+Time nanos :389048
+
+Start measurement
+java -server -d64 -jar -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=2 build/libs/jvm-jit-parameters-0.1.jar
+
+-------------------------------------------------
+Start JVM at 1451475653258.3845214844 ms
+
+
+End JVM at 1451475654406.3210449219 ms
+-------------------------------------------------
+
+
+-------------------------------------------------
+Start JVM at 1451475654406.3376464844 ms
+
+
+End JVM at 1451475655552.4472656250 ms
+-------------------------------------------------
+
+
+-------------------------------------------------
+Start JVM at 1451475655552.4633789062 ms
+
+
+End JVM at 1451475656691.9396972656 ms
+-------------------------------------------------
+
+
+-------------------------------------------------
+Start JVM at 1451475656691.9550781250 ms
+
+
+End JVM at 1451475657829.3540039062 ms
+-------------------------------------------------
+
+
+-------------------------------------------------
+Start JVM at 1451475657829.3703613281 ms
+
+
+End JVM at 1451475658965.7082519531 ms
+-------------------------------------------------
+
+
+Average spend time:1141.4690429688 ms 
+OK!

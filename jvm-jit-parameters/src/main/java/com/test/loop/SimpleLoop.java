@@ -15,7 +15,7 @@ public class SimpleLoop {
 
         System.out.println("Time ms: " + (end - start));
         System.out.println("Time micros:" + (TimeUnit.NANOSECONDS.toMicros(endNano) - TimeUnit.NANOSECONDS.toMicros(startNano)));
-        System.out.println("Time nanos :" + (endNano-startNano) + "\n");
+        System.out.println("Time nanos :" + (endNano - startNano) + "\n");
     }
 
     private static void fakeLoop() {
