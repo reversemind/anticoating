@@ -13,7 +13,7 @@ public class SimpleLoop {
         long endNano = System.nanoTime();
         long end = System.currentTimeMillis();
 
-        System.out.println("Time ms: " + (end - start));
+        System.out.println("Time ms:" + (end - start));
         System.out.println("Time micros:" + (TimeUnit.NANOSECONDS.toMicros(endNano) - TimeUnit.NANOSECONDS.toMicros(startNano)));
         System.out.println("Time nanos :" + (endNano - startNano) + "\n");
     }

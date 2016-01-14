@@ -64,8 +64,9 @@ double average(long *arr, int n){
 
 int main(int argc, char *argv[]) {
 
-	string jvmParameters = string(argv[1]);
-	string jarPath = string(argv[2]);
+	string jvmParameters = "";
+	string jarPath = string(argv[1]);
+	string parametersPath = string(argv[2]);
 
 	string runJvm = "java -jar " + jvmParameters + " " + jarPath;
 
@@ -74,12 +75,12 @@ int main(int argc, char *argv[]) {
 	cout << "Start measurement\n" << runJvm << "\n";
 
 
-
 	int linesCounter = 0;
 
 	string jvmArrays[100];
 
-    ifstream file("./simple_text.txt");
+	// "./jvm.parameters.txt"
+    ifstream file(parametersPath);
     string str;
     while (getline(file, str))
     {
@@ -92,12 +93,8 @@ int main(int argc, char *argv[]) {
 
 	cout << "lines:" << linesCounter << "\n";
 
-
-
-	double results[linesCounter][3];
+	double results[linesCounter][4 * 2];
 	int nLoop = 11;
-
-
 
 	for(int j=0; j<linesCounter; j++ ){
 //	for(int j=0; j<1; j++ ){
@@ -228,9 +225,16 @@ int main(int argc, char *argv[]) {
 
 
 		results[j][0] = average(arraydT2T1, nLoop);
-		results[j][1] = average(arraydT3_T2, nLoop);
-		results[j][2] = average(arraydT3T2, nLoop);
-		results[j][3] = average(arraydT3T1, nLoop);
+		results[j][1] = sko(arraydT2T1, nLoop);
+
+		results[j][2] = average(arraydT3_T2, nLoop);
+		results[j][3] = sko(arraydT3_T2, nLoop);
+
+		results[j][4] = average(arraydT3T2, nLoop);
+		results[j][5] = sko(arraydT3T2, nLoop);
+
+		results[j][6] = average(arraydT3T1, nLoop);
+		results[j][7] = sko(arraydT3T1, nLoop);
 
 	}// j
 
@@ -244,6 +248,10 @@ int main(int argc, char *argv[]) {
     		<< ";" << results[j][1]
     		<< ";" << results[j][2]
     		<< ";" << results[j][3]
+    		<< ";" << results[j][4]
+    		<< ";" << results[j][5]
+    		<< ";" << results[j][6]
+    		<< ";" << results[j][7]
     		<< ";"
     		<< "\n";
 	}

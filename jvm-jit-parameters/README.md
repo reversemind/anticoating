@@ -13,3 +13,5 @@ http://stackoverflow.com/questions/198577/real-differences-between-java-server-a
 http://stackoverflow.com/questions/16811140/whats-tiered-compilation-in-java-7
 http://stackoverflow.com/questions/3779339/java-jvm-hotspot-is-there-a-way-to-save-jit-performance-gains-at-compile-time
 http://www.infoq.com/presentations/self-heal-scalable-system
+http://www.slideshare.net/maddocig/tiered
+http://middlewaresnippets.blogspot.ru/2014/11/java-virtual-machine-code-generation.html
