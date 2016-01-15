@@ -7,6 +7,7 @@
 -server -Xcomp -XX:CICompilerCount=5
 -server -Xcomp -XX:CICompilerCount=10
 -server -XX:+TieredCompilation
+-server -XX:-TieredCompilation
 -server -Xcomp -XX:+TieredCompilation
 -server -Xcomp -XX:-TieredCompilation
 -server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=2
@@ -16,6 +17,10 @@
 -server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=2 -XX:CompileThreshold=10
 -server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=2 -XX:CompileThreshold=100
 -server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=2 -XX:CompileThreshold=10000
+-server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=5 -XX:CompileThreshold=10000
+-server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=10 -XX:CompileThreshold=10000
+-server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=20 -XX:CompileThreshold=10000
+-server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=20 -XX:CompileThreshold=100000
 -server -XX:+TieredCompilation -XX:CICompilerCount=2 -XX:CompileThreshold=10
 -server -XX:+TieredCompilation -XX:CICompilerCount=2 -XX:CompileThreshold=100
 -server -XX:+TieredCompilation -XX:CICompilerCount=2 -XX:CompileThreshold=10000

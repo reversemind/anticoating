@@ -21,6 +21,7 @@ struct ExtDuration{
 };
 
 ExtDuration extractDuration(string _string){
+
 	// look at com.test.loop.SimpleLoop.java
 	size_t pos = _string.find("Enter to main method at ms:") + string("Enter to main method at ms:").length();
 	string mainMethodStartTime = _string.substr(pos);
@@ -35,23 +36,6 @@ ExtDuration extractDuration(string _string){
 	return duration;
 }
 
-double sko(long *arr, int n){
-	double average = 0.0;
-
-	for(int i=0; i<n; i++ ){
-		average += (double)arr[i];
-	}
-
-	average = average / (n * 1.0);
-
-	double _sko = 0.0;
-	for(int i=0; i<n; i++ ){
-		_sko += ((double)arr[i] - average) * ((double)arr[i] - average);
-	}
-
-	return sqrt(_sko / ( n * 1.0));
-}
-
 double average(long *arr, int n){
 	double average = 0.0;
 
@@ -62,11 +46,23 @@ double average(long *arr, int n){
 	return average / (n * 1.0);
 }
 
+double sko(long *arr, int n){
+	double _average = average(arr, n);
+
+	double _sko = 0.0;
+	for(int i=0; i<n; i++ ){
+		_sko += ((double)arr[i] - _average) * ((double)arr[i] - _average);
+	}
+
+	return sqrt(_sko / ( n * 1.0));
+}
+
 int main(int argc, char *argv[]) {
 
 	string jvmParameters = "";
 	string jarPath = string(argv[1]);
 	string parametersPath = string(argv[2]);
+	string resultCsvPath = string(argv[3]);
 
 	string runJvm = "java -jar " + jvmParameters + " " + jarPath;
 
@@ -74,12 +70,11 @@ int main(int argc, char *argv[]) {
 	cout << "jarPath:" << jarPath << "\n";
 	cout << "Start measurement\n" << runJvm << "\n";
 
-
 	int linesCounter = 0;
 
+	// just define max available parameters in file
 	string jvmArrays[100];
 
-	// "./jvm.parameters.txt"
     ifstream file(parametersPath);
     string str;
     while (getline(file, str))
@@ -88,7 +83,9 @@ int main(int argc, char *argv[]) {
         cout << str << "\n";
         jvmArrays[linesCounter] = str;
         linesCounter++;
-
+		if(linesCounter>99){
+			break;
+		}
     }
 
 	cout << "lines:" << linesCounter << "\n";
@@ -97,14 +94,13 @@ int main(int argc, char *argv[]) {
 	int nLoop = 11;
 
 	for(int j=0; j<linesCounter; j++ ){
-//	for(int j=0; j<1; j++ ){
 
 		string runJvm = "java -jar " + jvmArrays[j] + " " + jarPath;
 
-		long arrayT1[nLoop]; // системное время старта JVM
-		long arrayT2[nLoop]; // системное время попадания в метод main Java приложения
-		long arrayT3[nLoop]; // системное время окончания работы JVM
-		long arrayT3_[nLoop]; // mks выполнение алгоритма
+		long arrayT1[nLoop]; 	// системное время старта JVM
+		long arrayT2[nLoop]; 	// системное время попадания в метод main Java приложения
+		long arrayT3[nLoop]; 	// системное время окончания работы JVM
+		long arrayT3_[nLoop]; 	// mks выполнение алгоритма
 
 		cout.setf(ios_base::fixed,ios_base::floatfield);
 		cout.precision(3);
@@ -210,8 +206,6 @@ int main(int argc, char *argv[]) {
 			<< "\n- average:" << average(arraydT3T1, nLoop) << " ms"
 			<< "\n- standart deviation:" << sko(arraydT3T1, nLoop) << " ms\n";
 
-
-
 		cout << "=====================================================================================================\n";
 
 
@@ -241,6 +235,8 @@ int main(int argc, char *argv[]) {
 
 	cout << "\n\n";
 
+	ofstream fileResult;
+	fileResult.open(resultCsvPath);
 
 	for(int j=0; j<linesCounter; j++){
 			cout << jvmArrays[j].c_str()
@@ -254,7 +250,21 @@ int main(int argc, char *argv[]) {
     		<< ";" << results[j][7]
     		<< ";"
     		<< "\n";
+
+			fileResult << jvmArrays[j].c_str()
+			<< ";" << results[j][0]
+			<< ";" << results[j][1]
+			<< ";" << results[j][2]
+			<< ";" << results[j][3]
+			<< ";" << results[j][4]
+			<< ";" << results[j][5]
+			<< ";" << results[j][6]
+			<< ";" << results[j][7]
+			<< ";"
+			<< "\n";
 	}
+
+	fileResult.close();
 
 	return 0;
 }

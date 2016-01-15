@@ -1,8 +1,0 @@
-
--client
--server -d64
--server -d64 -XX:+TieredCompilation
--server -d64 -Xcomp -XX:+TieredCompilation
--server -d64 -Xcomp -XX:-TieredCompilation
--server -d64 -Xcomp -XX:+TieredCompilation -XX:CICompilerCount=10
--server -d64 -jar -Xcomp -XX:CICompilerCount=2 -XX:CompileThreshold=100

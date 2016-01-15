@@ -1,1 +1,1 @@
--server -Xcomp -XX:-TieredCompilation -XX:CICompilerCount=1
+-server -XX:-TieredCompilation
