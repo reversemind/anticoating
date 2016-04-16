@@ -9,18 +9,21 @@ targetCompatibility = 1.8
 
 dependencies {
 
-    compile 'org.slf4j:slf4j-api:1.7.+'
-    compile 'org.slf4j:slf4j-simple:1.7.+'
-
-    compile 'ch.qos.logback:logback-classic:1.1.+'
-    compile 'ch.qos.logback:logback-core:1.1.+'
-
-    compile 'org.apache.commons:commons-lang3:3.+'
-    compile 'commons-io:commons-io:2.4'
-
-    // Test
-    testCompile 'org.mockito:mockito-all:1.10.+'
-
-    testCompile 'org.testng:testng:6.0.1'
-    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    compile 'org.codehaus.groovy:groovy-all:2.4.6'
+//
+//
+//    compile 'org.slf4j:slf4j-api:1.7.21'
+//    compile 'org.slf4j:slf4j-simple:1.7.21'
+//
+//    compile 'ch.qos.logback:logback-classic:1.1.7'
+//    compile 'ch.qos.logback:logback-core:1.1.7'
+//
+//    compile 'org.apache.commons:commons-lang3:4'
+//    compile 'commons-io:commons-io:2.4'
+//
+//    // Test
+//    testCompile 'org.mockito:mockito-all:1.10.+'
+//
+//    testCompile 'org.testng:testng:6.0.1'
+//    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
 }
